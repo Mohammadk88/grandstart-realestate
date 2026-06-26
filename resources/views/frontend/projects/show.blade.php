@@ -235,24 +235,32 @@
                 @endif
 
                 <!-- Location (city/district) -->
-                @if($project->city || $project->district)
+                @if($project->country || $project->city || $project->district)
                 <div class="project-location-detail mt-5" data-aos="fade-up">
                     <h3 class="detail-section-title">
                         <i class="fas fa-map-marker-alt me-2"></i>{{ app()->getLocale() === 'en' ? 'Location' : 'الموقع' }}
                     </h3>
-                    <div class="location-tags d-flex flex-wrap gap-2">
+                    <div class="location-tags d-flex flex-wrap gap-2 mb-2">
                         @if($project->country)
-                        <span class="location-tag"><i class="fas fa-globe me-1"></i>{{ $project->country }}</span>
+                        <span class="location-tag">
+                            <i class="fas fa-globe me-1"></i>{{ $project->getCountryName() }}
+                        </span>
                         @endif
                         @if($project->city)
-                        <span class="location-tag"><i class="fas fa-city me-1"></i>{{ $project->city }}</span>
+                        <span class="location-tag">
+                            <i class="fas fa-city me-1"></i>{{ $project->getProvinceName() }}
+                        </span>
                         @endif
                         @if($project->district)
-                        <span class="location-tag"><i class="fas fa-map-pin me-1"></i>{{ $project->district }}</span>
+                        <span class="location-tag">
+                            <i class="fas fa-map-pin me-1"></i>{{ $project->getDistrictName() }}
+                        </span>
                         @endif
                     </div>
-                    @if($project->address_detail)
-                    <p class="mt-2 mb-0 text-muted small"><i class="fas fa-info-circle me-1"></i>{{ $project->address_detail }}</p>
+                    @if($project->getAddressDetail())
+                    <p class="mt-2 mb-0 text-muted small">
+                        <i class="fas fa-location-dot me-1"></i>{{ $project->getAddressDetail() }}
+                    </p>
                     @endif
                 </div>
                 @endif

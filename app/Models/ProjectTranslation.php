@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProjectTranslation extends Model
 {
-    protected $fillable = ['project_id', 'locale', 'title', 'description', 'location'];
+    protected $fillable = ['project_id', 'locale', 'title', 'description', 'location', 'address_detail'];
 
     public function project(): BelongsTo
     {

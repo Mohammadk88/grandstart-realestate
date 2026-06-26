@@ -20,7 +20,7 @@ class Project extends Model
         'main_image',
         'video_url',
         'latitude', 'longitude',
-        'country', 'city', 'district', 'address_detail',
+        'country', 'city', 'district',
         'delivery_date',
         'sort_order',
     ];
@@ -105,6 +105,47 @@ class Project extends Model
     public function getLocation(): string
     {
         return $this->getTranslation('location');
+    }
+
+    public function getAddressDetail(): string
+    {
+        return $this->getTranslation('address_detail');
+    }
+
+    /** Returns translated province name from locations config */
+    public function getProvinceName(?string $locale = null): string
+    {
+        if (!$this->city) return '';
+        $locale = $locale ?: app()->getLocale();
+        $locations = config('locations');
+        $country = $locations[$this->country] ?? null;
+        if (!$country) return $this->city;
+        $province = $country['provinces'][$this->city] ?? null;
+        return $province['name'][$locale] ?? $province['name']['ar'] ?? $this->city;
+    }
+
+    /** Returns translated district name from locations config */
+    public function getDistrictName(?string $locale = null): string
+    {
+        if (!$this->district) return '';
+        $locale = $locale ?: app()->getLocale();
+        $locations = config('locations');
+        $country = $locations[$this->country] ?? null;
+        if (!$country) return $this->district;
+        $province = $country['provinces'][$this->city] ?? null;
+        if (!$province) return $this->district;
+        $district = $province['districts'][$this->district] ?? null;
+        return $district[$locale] ?? $district['ar'] ?? $this->district;
+    }
+
+    /** Returns translated country name from locations config */
+    public function getCountryName(?string $locale = null): string
+    {
+        if (!$this->country) return '';
+        $locale = $locale ?: app()->getLocale();
+        $locations = config('locations');
+        $country = $locations[$this->country] ?? null;
+        return $country['name'][$locale] ?? $country['name']['ar'] ?? $this->country;
     }
 
     public function getPriceForCountry(string $countryCode = 'TR'): string

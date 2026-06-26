@@ -126,57 +126,80 @@
             <div class="form-card">
                 <div class="form-card-title"><i class="fas fa-map-marker-alt"></i> الموقع الجغرافي</div>
                 @php
-                $countries = [
-                    'TR' => ['ar' => 'تركيا',        'en' => 'Turkey',       'cities' => ['إسطنبول'=>'Istanbul','أنقرة'=>'Ankara','أنطاليا'=>'Antalya','إزمير'=>'Izmir','بورصة'=>'Bursa','طرابزون'=>'Trabzon','ألانيا'=>'Alanya','مرسين'=>'Mersin']],
-                    'IQ' => ['ar' => 'العراق',        'en' => 'Iraq',         'cities' => ['بغداد'=>'Baghdad','أربيل'=>'Erbil','السليمانية'=>'Sulaymaniyah','النجف'=>'Najaf','كركوك'=>'Kirkuk','البصرة'=>'Basra']],
-                    'AE' => ['ar' => 'الإمارات',      'en' => 'UAE',          'cities' => ['دبي'=>'Dubai','أبوظبي'=>'Abu Dhabi','الشارقة'=>'Sharjah','عجمان'=>'Ajman','رأس الخيمة'=>'Ras Al Khaimah']],
-                    'SA' => ['ar' => 'السعودية',      'en' => 'Saudi Arabia', 'cities' => ['الرياض'=>'Riyadh','جدة'=>'Jeddah','مكة المكرمة'=>'Mecca','المدينة المنورة'=>'Medina','الدمام'=>'Dammam']],
-                    'JO' => ['ar' => 'الأردن',        'en' => 'Jordan',       'cities' => ['عمّان'=>'Amman','إربد'=>'Irbid','الزرقاء'=>'Zarqa','العقبة'=>'Aqaba']],
-                    'EG' => ['ar' => 'مصر',           'en' => 'Egypt',        'cities' => ['القاهرة'=>'Cairo','الإسكندرية'=>'Alexandria','الغردقة'=>'Hurghada','شرم الشيخ'=>'Sharm El Sheikh']],
-                    'KW' => ['ar' => 'الكويت',        'en' => 'Kuwait',       'cities' => ['مدينة الكويت'=>'Kuwait City','حولي'=>'Hawalli','الجهراء'=>'Jahra']],
-                    'QA' => ['ar' => 'قطر',           'en' => 'Qatar',        'cities' => ['الدوحة'=>'Doha','الريان'=>'Al Rayyan','الوكرة'=>'Al Wakra']],
-                    'OTHER' => ['ar' => 'أخرى',       'en' => 'Other',        'cities' => []],
-                ];
-                $selectedCountry = old('country', $project->country) ?: 'TR';
+                $locData   = config('locations');
+                $selCountry = old('country', $project->country) ?: '';
+                $selCity    = old('city',    $project->city)    ?: '';
+                $selDistrict= old('district',$project->district)?: '';
                 @endphp
                 <div class="row g-3">
+                    {{-- Country --}}
                     <div class="col-md-4">
-                        <label class="form-label">الدولة <span class="text-danger">*</span></label>
-                        <select name="country" id="countrySelect" class="form-select">
+                        <label class="form-label fw-semibold">الدولة</label>
+                        <select name="country" id="locCountry" class="form-select">
                             <option value="">-- اختر الدولة --</option>
-                            @foreach($countries as $code => $c)
-                            <option value="{{ $code }}" {{ $selectedCountry === $code ? 'selected' : '' }}>
-                                {{ $c['ar'] }} — {{ $c['en'] }}
+                            @foreach($locData as $code => $c)
+                            <option value="{{ $code }}" {{ $selCountry === $code ? 'selected' : '' }}>
+                                {{ $c['name']['ar'] }} / {{ $c['name']['en'] }}
                             </option>
                             @endforeach
                         </select>
                     </div>
+                    {{-- Province --}}
                     <div class="col-md-4">
-                        <label class="form-label">المدينة <span class="text-danger">*</span></label>
-                        <select name="city" id="citySelect" class="form-select">
-                            <option value="">-- اختر المدينة --</option>
-                            @foreach($countries as $code => $c)
-                            @foreach($c['cities'] as $arCity => $enCity)
-                            <option value="{{ $arCity }}"
+                        <label class="form-label fw-semibold">الولاية / المحافظة</label>
+                        <select name="city" id="locProvince" class="form-select">
+                            <option value="">-- اختر الولاية --</option>
+                            @foreach($locData as $code => $c)
+                            @foreach($c['provinces'] as $pKey => $p)
+                            <option value="{{ $pKey }}"
                                 data-country="{{ $code }}"
-                                {{ old('city', $project->city) === $arCity ? 'selected' : '' }}>
-                                {{ $arCity }} — {{ $enCity }}
+                                {{ $selCity === $pKey ? 'selected' : '' }}>
+                                {{ $p['name']['ar'] }} / {{ $p['name']['en'] }}
                             </option>
                             @endforeach
                             @endforeach
                         </select>
                     </div>
+                    {{-- District --}}
                     <div class="col-md-4">
-                        <label class="form-label">المنطقة / الحي</label>
-                        <input type="text" name="district" class="form-control"
-                               value="{{ old('district', $project->district) }}"
-                               placeholder="مثال: بشيكتاش، المرسى، وسط المدينة">
+                        <label class="form-label fw-semibold">المنطقة / القضاء</label>
+                        <select name="district" id="locDistrict" class="form-select">
+                            <option value="">-- اختر المنطقة --</option>
+                            @foreach($locData as $code => $c)
+                            @foreach($c['provinces'] as $pKey => $p)
+                            @foreach($p['districts'] as $dKey => $d)
+                            <option value="{{ $dKey }}"
+                                data-province="{{ $pKey }}"
+                                {{ $selDistrict === $dKey ? 'selected' : '' }}>
+                                {{ $d['ar'] }} / {{ $d['en'] }}
+                            </option>
+                            @endforeach
+                            @endforeach
+                            @endforeach
+                        </select>
                     </div>
+
+                    {{-- address_detail per language --}}
                     <div class="col-12">
-                        <label class="form-label">تفاصيل العنوان <span class="text-muted">(اختياري)</span></label>
-                        <input type="text" name="address_detail" class="form-control"
-                               value="{{ old('address_detail', $project->address_detail) }}"
-                               placeholder="رقم الشارع، اسم المبنى، أي تفاصيل إضافية...">
+                        <label class="form-label fw-semibold">
+                            باقي العنوان <span class="text-muted fw-normal">(اختياري — رقم الشارع، اسم المبنى...)</span>
+                        </label>
+                        <div class="row g-2">
+                            @foreach($languages as $lang)
+                            @php $t = $project->translations->firstWhere('locale', $lang->code); @endphp
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light fw-bold" style="min-width:42px;">{{ strtoupper($lang->code) }}</span>
+                                    <input type="text"
+                                           name="translations[{{ $lang->code }}][address_detail]"
+                                           class="form-control"
+                                           dir="{{ $lang->direction }}"
+                                           placeholder="{{ $lang->name_native }}"
+                                           value="{{ old("translations.{$lang->code}.address_detail", $t?->address_detail) }}">
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 <p class="text-muted small mt-2 mb-0">
@@ -461,26 +484,48 @@ document.getElementById('addFeatureBtn').addEventListener('click', function() {
 
 @push('scripts')
 <script>
-// Country → City select filter
+// Three-level location: country → province → district
 (function() {
-    var countrySelect = document.getElementById('countrySelect');
-    var citySelect    = document.getElementById('citySelect');
-    var allOptions    = Array.from(citySelect.querySelectorAll('option[data-country]'));
+    var cSel = document.getElementById('locCountry');
+    var pSel = document.getElementById('locProvince');
+    var dSel = document.getElementById('locDistrict');
+    if (!cSel || !pSel || !dSel) return;
 
-    function filterCities() {
-        var country = countrySelect.value;
-        var current = citySelect.value;
-        citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
-        allOptions.forEach(function(opt) {
+    var allProvinces = Array.from(pSel.querySelectorAll('option[data-country]'));
+    var allDistricts = Array.from(dSel.querySelectorAll('option[data-province]'));
+
+    function filterProvinces(keepVal) {
+        var country = cSel.value;
+        var cur = keepVal !== undefined ? keepVal : pSel.value;
+        pSel.innerHTML = '<option value="">-- اختر الولاية --</option>';
+        allProvinces.forEach(function(opt) {
             if (!country || opt.dataset.country === country) {
-                var clone = opt.cloneNode(true);
-                if (clone.value === current) clone.selected = true;
-                citySelect.appendChild(clone);
+                var c = opt.cloneNode(true);
+                if (c.value === cur) c.selected = true;
+                pSel.appendChild(c);
+            }
+        });
+        filterDistricts(dSel.value);
+    }
+
+    function filterDistricts(keepVal) {
+        var province = pSel.value;
+        var cur = keepVal !== undefined ? keepVal : dSel.value;
+        dSel.innerHTML = '<option value="">-- اختر المنطقة --</option>';
+        allDistricts.forEach(function(opt) {
+            if (!province || opt.dataset.province === province) {
+                var c = opt.cloneNode(true);
+                if (c.value === cur) c.selected = true;
+                dSel.appendChild(c);
             }
         });
     }
-    countrySelect.addEventListener('change', filterCities);
-    filterCities();
+
+    cSel.addEventListener('change', function() { filterProvinces(''); });
+    pSel.addEventListener('change', function() { filterDistricts(''); });
+    // init on page load
+    filterProvinces(pSel.value);
+    filterDistricts(dSel.value);
 })();
 
 // PDF upload

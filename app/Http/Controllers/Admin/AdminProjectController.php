@@ -246,10 +246,9 @@ class AdminProjectController extends Controller
             'video_url'     => 'nullable|url',
             'latitude'      => 'nullable|numeric',
             'longitude'     => 'nullable|numeric',
-            'country'        => 'nullable|string|max:10',
-            'city'           => 'nullable|string|max:100',
-            'district'       => 'nullable|string|max:150',
-            'address_detail' => 'nullable|string|max:255',
+            'country'  => 'nullable|string|max:10',
+            'city'     => 'nullable|string|max:100',
+            'district' => 'nullable|string|max:100',
             'delivery_date' => 'nullable|date',
             'sort_order'    => 'nullable|integer',
         ]);
@@ -287,9 +286,10 @@ class AdminProjectController extends Controller
             $project->translations()->updateOrCreate(
                 ['locale' => $locale],
                 [
-                    'title'       => $data['title'],
-                    'description' => $data['description'] ?? null,
-                    'location'    => $data['location'] ?? null,
+                    'title'          => $data['title'],
+                    'description'    => $data['description'] ?? null,
+                    'location'       => $data['location'] ?? null,
+                    'address_detail' => $data['address_detail'] ?? null,
                 ]
             );
         }
