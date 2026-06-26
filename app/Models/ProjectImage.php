@@ -17,4 +17,14 @@ class ProjectImage extends Model
     {
         return asset('uploads/' . $this->image);
     }
+
+    public function getThumbUrl(): string
+    {
+        $thumb = preg_replace('/(\.\w+)$/', '_thumb$1', $this->image);
+        $thumbPath = storage_path('app/public/' . $thumb);
+        if (file_exists($thumbPath)) {
+            return asset('uploads/' . $thumb);
+        }
+        return asset('uploads/' . $this->image);
+    }
 }

@@ -18,7 +18,7 @@
                 </div>
                 @endif
                 <h1 class="hero-title">
-                    {!! \App\Models\Setting::get('hero_title_' . app()->getLocale(), \App\Models\Setting::get('hero_title_ar')) !!}
+                    {!! strip_tags(\App\Models\Setting::get('hero_title_' . app()->getLocale(), \App\Models\Setting::get('hero_title_ar', '')), '<br><strong><em><span>') !!}
                 </h1>
                 <p class="hero-subtitle">
                     {{ \App\Models\Setting::get('hero_subtitle_' . app()->getLocale(), \App\Models\Setting::get('hero_subtitle_ar')) }}
@@ -83,7 +83,7 @@
             <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ ($i % 3) * 100 }}">
                 <div class="project-card">
                     <div class="project-image-wrap">
-                        <img src="{{ $project->getMainImageUrl() }}"
+                        <img src="{{ $project->getMainImageThumbUrl() }}"
                              alt="{{ $project->getTitle() }}"
                              class="project-img"
                              loading="lazy">
@@ -260,7 +260,7 @@
             <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ $i * 150 }}">
                 <div class="project-card project-card-dark">
                     <div class="project-image-wrap">
-                        <img src="{{ $project->getMainImageUrl() }}" alt="{{ $project->getTitle() }}" class="project-img" loading="lazy">
+                        <img src="{{ $project->getMainImageThumbUrl() }}" alt="{{ $project->getTitle() }}" class="project-img" loading="lazy">
                         <div class="project-overlay">
                             <a href="{{ route('projects.show', $project->slug) }}" class="btn btn-gold btn-sm">
                                 {{ __('app.view_project') }}

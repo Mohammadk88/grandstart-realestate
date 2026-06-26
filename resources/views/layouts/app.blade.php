@@ -5,8 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', \App\Models\Setting::get('meta_title_' . app()->getLocale(), 'Grand Start Real Estate'))</title>
-    <meta name="description" content="@yield('description', \App\Models\Setting::get('meta_description_' . app()->getLocale(), ''))">
+    @php
+        $seoTitle       = trim(strip_tags(View::yieldContent('title') ?: \App\Models\Setting::get('meta_title_' . app()->getLocale(), 'Grand Start Real Estate')));
+        $seoDescription = trim(strip_tags(View::yieldContent('description') ?: \App\Models\Setting::get('meta_description_' . app()->getLocale(), '')));
+        $seoImage       = View::yieldContent('og_image') ?: asset('images/og-default.jpg');
+        $seoUrl         = url()->current();
+        $seoLocale      = app()->getLocale() === 'ar' ? 'ar_AE' : 'en_US';
+        $siteName       = \App\Models\Setting::get('company_name_' . app()->getLocale(), 'Grand Start Real Estate');
+    @endphp
+
+    <title>{{ $seoTitle }}</title>
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="robots" content="@yield('robots', 'index, follow')">
+    <link rel="canonical" href="{{ $seoUrl }}">
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="@yield('og_type', 'website')">
+    <meta property="og:title"       content="{{ $seoTitle }}">
+    <meta property="og:description" content="{{ $seoDescription }}">
+    <meta property="og:image"       content="{{ $seoImage }}">
+    <meta property="og:url"         content="{{ $seoUrl }}">
+    <meta property="og:site_name"   content="{{ $siteName }}">
+    <meta property="og:locale"      content="{{ $seoLocale }}">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image"       content="{{ $seoImage }}">
+
+    <!-- JSON-LD Organization (GEO/AEO) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "RealEstateAgent",
+        "name": "{{ $siteName }}",
+        "url": "{{ url('/') }}",
+        "logo": "{{ asset('images/logo.png') }}",
+        "image": "{{ $seoImage }}",
+        "description": "{{ $seoDescription }}",
+        "@id": "{{ url('/') }}/#organization",
+        "sameAs": []
+    }
+    </script>
+
+    @stack('schema')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

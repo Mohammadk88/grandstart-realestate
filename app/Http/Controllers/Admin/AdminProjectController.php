@@ -8,9 +8,12 @@ use App\Models\Project;
 use App\Models\ProjectFeature;
 use App\Models\ProjectFeatureTranslation;
 use App\Models\ProjectImage;
+use App\Models\ProjectMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class AdminProjectController extends Controller
 {
@@ -51,7 +54,8 @@ class AdminProjectController extends Controller
         $project = new Project($validated);
 
         if ($request->hasFile('main_image')) {
-            $project->main_image = $this->uploadImage($request->file('main_image'), 'projects');
+            [$path] = $this->uploadImage($request->file('main_image'), 'projects');
+            $project->main_image = $path;
         }
 
         $project->slug = Str::slug($request->input('translations.en.title', '') ?: $request->input('translations.' . Language::getDefaultCode() . '.title', 'project'))
@@ -86,8 +90,11 @@ class AdminProjectController extends Controller
         if ($request->hasFile('main_image')) {
             if ($project->main_image) {
                 Storage::delete('public/' . $project->main_image);
+                $oldThumb = preg_replace('/(\.\w+)$/', '_thumb$1', $project->main_image);
+                Storage::delete('public/' . $oldThumb);
             }
-            $validated['main_image'] = $this->uploadImage($request->file('main_image'), 'projects');
+            [$path] = $this->uploadImage($request->file('main_image'), 'projects');
+            $validated['main_image'] = $path;
         }
 
         $project->update($validated);
@@ -118,21 +125,91 @@ class AdminProjectController extends Controller
     public function uploadImages(Request $request, Project $project)
     {
         $request->validate([
-            'images.*' => 'required|image|max:5120',
+            'images.*' => 'required|image|mimes:jpeg,jpg,png,webp,gif|max:10240',
         ]);
 
         $uploaded = 0;
         foreach ($request->file('images', []) as $file) {
-            $path = $this->uploadImage($file, 'projects/gallery');
-            ProjectImage::create([
-                'project_id' => $project->id,
-                'image'      => $path,
-                'sort_order' => $project->images()->count() + 1,
+            [$path, $thumb] = $this->uploadImage($file, 'projects/gallery');
+            ProjectMedia::create([
+                'project_id'    => $project->id,
+                'type'          => 'image',
+                'path'          => $path,
+                'thumbnail'     => $thumb,
+                'original_name' => $file->getClientOriginalName(),
+                'file_size'     => $file->getSize(),
+                'sort_order'    => $project->media()->count() + 1,
             ]);
             $uploaded++;
         }
 
         return response()->json(['success' => true, 'uploaded' => $uploaded]);
+    }
+
+    public function uploadPdfs(Request $request, Project $project)
+    {
+        $request->validate([
+            'pdfs.*' => 'required|mimes:pdf|max:20480',
+        ]);
+
+        $uploaded = 0;
+        foreach ($request->file('pdfs', []) as $file) {
+            $basename = Str::random(20);
+            $filename = $basename . '.pdf';
+            $folder   = 'projects/pdfs';
+            $file->storeAs("public/{$folder}", $filename);
+
+            ProjectMedia::create([
+                'project_id'    => $project->id,
+                'type'          => 'pdf',
+                'path'          => "{$folder}/{$filename}",
+                'original_name' => $file->getClientOriginalName(),
+                'file_size'     => $file->getSize(),
+                'sort_order'    => $project->media()->count() + 1,
+            ]);
+            $uploaded++;
+        }
+
+        return response()->json(['success' => true, 'uploaded' => $uploaded]);
+    }
+
+    public function uploadVideos(Request $request, Project $project)
+    {
+        $request->validate([
+            'videos.*' => 'required|mimes:mp4,mov,avi,webm|max:204800',
+        ]);
+
+        $uploaded = 0;
+        foreach ($request->file('videos', []) as $file) {
+            $basename = Str::random(20);
+            $ext      = $file->getClientOriginalExtension();
+            $filename = $basename . '.' . $ext;
+            $folder   = 'projects/videos';
+            $file->storeAs("public/{$folder}", $filename);
+
+            ProjectMedia::create([
+                'project_id'    => $project->id,
+                'type'          => 'video',
+                'path'          => "{$folder}/{$filename}",
+                'original_name' => $file->getClientOriginalName(),
+                'file_size'     => $file->getSize(),
+                'sort_order'    => $project->media()->count() + 1,
+            ]);
+            $uploaded++;
+        }
+
+        return response()->json(['success' => true, 'uploaded' => $uploaded]);
+    }
+
+    public function deleteMedia(Project $project, ProjectMedia $media)
+    {
+        Storage::delete('public/' . $media->path);
+        if ($media->thumbnail) {
+            Storage::delete('public/' . $media->thumbnail);
+        }
+        $media->delete();
+
+        return response()->json(['success' => true]);
     }
 
     public function deleteImage(Project $project, ProjectImage $image)
@@ -174,11 +251,27 @@ class AdminProjectController extends Controller
         ]);
     }
 
-    private function uploadImage($file, string $folder): string
+    private function uploadImage($file, string $folder): array
     {
-        $filename = Str::random(20) . '.' . $file->getClientOriginalExtension();
+        $ext       = strtolower($file->getClientOriginalExtension());
+        $basename  = Str::random(20);
+        $filename  = $basename . '.' . $ext;
+        $thumbname = $basename . '_thumb.' . $ext;
+
+        $storagePath = storage_path("app/public/{$folder}");
+        if (!is_dir($storagePath)) {
+            mkdir($storagePath, 0775, true);
+        }
+
         $file->storeAs("public/{$folder}", $filename);
-        return "{$folder}/{$filename}";
+
+        // Strip EXIF and create thumbnail
+        $manager = new ImageManager(new Driver());
+        $manager->read($file->getRealPath())
+            ->cover(800, 600)
+            ->save("{$storagePath}/{$thumbname}");
+
+        return ["{$folder}/{$filename}", "{$folder}/{$thumbname}"];
     }
 
     private function saveTranslations(Project $project, array $translations): void

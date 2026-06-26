@@ -1,6 +1,45 @@
 @extends('layouts.app')
 
 @section('title', $project->getTitle() . ' - ' . \App\Models\Setting::get('company_name_' . app()->getLocale()))
+@section('description', Str::limit(strip_tags($project->getDescription()), 160))
+@section('og_type', 'article')
+@section('og_image', $project->getMainImageUrl())
+
+@push('schema')
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": "{{ route('projects.show', $project->slug) }}",
+    "name": "{{ $project->getTitle() }}",
+    "description": "{{ Str::limit(strip_tags($project->getDescription()), 300) }}",
+    "image": "{{ $project->getMainImageUrl() }}",
+    "url": "{{ route('projects.show', $project->slug) }}",
+    "brand": {
+        "@type": "Brand",
+        "name": "{{ \App\Models\Setting::get('company_name_' . app()->getLocale(), 'Grand Start Real Estate') }}"
+    },
+    @if($project->price_usd)
+    "offers": {
+        "@type": "Offer",
+        "priceCurrency": "USD",
+        "price": "{{ $project->price_usd }}",
+        "availability": "{{ $project->status === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}"
+    },
+    @endif
+    "additionalProperty": [
+        @if($project->area)
+        {"@type": "PropertyValue", "name": "Area", "value": "{{ $project->area }}"},
+        @endif
+        @if($project->floors)
+        {"@type": "PropertyValue", "name": "Floors", "value": "{{ $project->floors }}"},
+        @endif
+        {"@type": "PropertyValue", "name": "Status", "value": "{{ $project->status }}"},
+        {"@type": "PropertyValue", "name": "Type", "value": "{{ $project->type }}"}
+    ]
+}
+</script>
+@endpush
 
 @section('content')
 
@@ -52,11 +91,11 @@
                     <div class="swiper gallery-thumbs">
                         <div class="swiper-wrapper">
                             <div class="swiper-slide">
-                                <img src="{{ $project->getMainImageUrl() }}" alt="" class="gallery-thumb-img">
+                                <img src="{{ $project->getMainImageThumbUrl() }}" alt="" class="gallery-thumb-img">
                             </div>
                             @foreach($project->images as $image)
                             <div class="swiper-slide">
-                                <img src="{{ $image->getUrl() }}" alt="" class="gallery-thumb-img">
+                                <img src="{{ $image->getThumbUrl() }}" alt="" class="gallery-thumb-img">
                             </div>
                             @endforeach
                         </div>
@@ -278,7 +317,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="project-card">
                         <div class="project-image-wrap">
-                            <img src="{{ $related->getMainImageUrl() }}" alt="{{ $related->getTitle() }}" class="project-img" loading="lazy">
+                            <img src="{{ $related->getMainImageThumbUrl() }}" alt="{{ $related->getTitle() }}" class="project-img" loading="lazy">
                             <div class="project-overlay">
                                 <a href="{{ route('projects.show', $related->slug) }}" class="btn btn-gold btn-sm">
                                     {{ __('app.view_project') }}

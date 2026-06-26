@@ -43,6 +43,26 @@ class Project extends Model
         return $this->hasMany(ProjectImage::class)->orderBy('sort_order');
     }
 
+    public function media(): HasMany
+    {
+        return $this->hasMany(ProjectMedia::class)->orderBy('sort_order');
+    }
+
+    public function mediaImages(): HasMany
+    {
+        return $this->hasMany(ProjectMedia::class)->where('type', 'image')->orderBy('sort_order');
+    }
+
+    public function mediaPdfs(): HasMany
+    {
+        return $this->hasMany(ProjectMedia::class)->where('type', 'pdf')->orderBy('sort_order');
+    }
+
+    public function mediaVideos(): HasMany
+    {
+        return $this->hasMany(ProjectMedia::class)->where('type', 'video')->orderBy('sort_order');
+    }
+
     public function features(): HasMany
     {
         return $this->hasMany(ProjectFeature::class);
@@ -109,6 +129,19 @@ class Project extends Model
     public function getMainImageUrl(): string
     {
         if ($this->main_image) {
+            return asset('uploads/' . $this->main_image);
+        }
+        return asset('images/project-placeholder.jpg');
+    }
+
+    public function getMainImageThumbUrl(): string
+    {
+        if ($this->main_image) {
+            $thumb = preg_replace('/(\.\w+)$/', '_thumb$1', $this->main_image);
+            $thumbPath = storage_path('app/public/' . $thumb);
+            if (file_exists($thumbPath)) {
+                return asset('uploads/' . $thumb);
+            }
             return asset('uploads/' . $this->main_image);
         }
         return asset('images/project-placeholder.jpg');

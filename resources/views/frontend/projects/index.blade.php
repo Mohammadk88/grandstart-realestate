@@ -96,7 +96,7 @@
             <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ ($i % 3) * 100 }}">
                 <div class="project-card">
                     <div class="project-image-wrap">
-                        <img src="{{ $project->getMainImageUrl() }}"
+                        <img src="{{ $project->getMainImageThumbUrl() }}"
                              alt="{{ $project->getTitle() }}"
                              class="project-img"
                              loading="lazy">

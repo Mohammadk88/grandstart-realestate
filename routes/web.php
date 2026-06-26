@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\SitemapController;
 use App\Http\Controllers\Frontend\ProjectController;
 use App\Http\Controllers\Frontend\AboutController;
 use App\Http\Controllers\Frontend\ContactController;
@@ -33,6 +34,9 @@ Route::middleware(['geo.target', 'set.locale'])->group(function () {
 // Language switcher
 Route::get('/lang/{locale}', [LocaleController::class, 'switch'])->name('lang.switch');
 
+// Sitemap
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
 /*
 |--------------------------------------------------------------------------
 | Admin Routes
@@ -53,6 +57,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('projects', AdminProjectController::class);
         Route::post('projects/{project}/images', [AdminProjectController::class, 'uploadImages'])->name('projects.images.upload');
         Route::delete('projects/{project}/images/{image}', [AdminProjectController::class, 'deleteImage'])->name('projects.images.delete');
+        Route::post('projects/{project}/pdfs', [AdminProjectController::class, 'uploadPdfs'])->name('projects.pdfs.upload');
+        Route::post('projects/{project}/videos', [AdminProjectController::class, 'uploadVideos'])->name('projects.videos.upload');
+        Route::delete('projects/{project}/media/{media}', [AdminProjectController::class, 'deleteMedia'])->name('projects.media.delete');
         Route::post('projects/{project}/toggle-featured', [AdminProjectController::class, 'toggleFeatured'])->name('projects.toggle-featured');
 
         // Contacts / Inquiries
