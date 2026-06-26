@@ -7,7 +7,7 @@ echo "======================================="
 
 # Check PHP
 if ! command -v php &> /dev/null; then
-    echo "❌ PHP not found. Please install PHP >= 8.1"
+    echo "❌ PHP not found. Please install PHP >= 8.3"
     exit 1
 fi
 
