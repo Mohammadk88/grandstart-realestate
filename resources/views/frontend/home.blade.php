@@ -327,43 +327,97 @@
 
 {{-- ====== MAP ====== --}}
 @elseif($section->key === 'map')
+@php
+$allProjectsForMap = \App\Models\Project::active()->with(['translations','images'])->orderBy('sort_order')->get();
+$mapData = $mapProjects->map(fn($p) => [
+    'lat'   => (float) $p->latitude,
+    'lng'   => (float) $p->longitude,
+    'title' => $p->getTitle(),
+    'loc'   => $p->getLocation(),
+    'img'   => $p->getMainImageThumbUrl(),
+    'url'   => route('projects.show', $p->slug),
+    'price' => $p->price_usd ? '$' . number_format($p->price_usd, 0) : null,
+    'type'  => $p->type,
+])->values();
+@endphp
 <section class="section-map py-6 bg-dark-section">
-    <div class="container">
-        <div class="section-header text-center mb-5" data-aos="fade-up">
-            <span class="section-label">{{ app()->getLocale() === 'en' ? 'Our Projects on the Map' : 'مشاريعنا على الخريطة' }}</span>
-            <h2 class="section-title">{{ app()->getLocale() === 'en' ? 'Explore Properties Geographically' : 'استكشف العقارات جغرافياً' }}</h2>
-            <div class="title-divider"><span></span></div>
+    <div class="container-fluid px-0">
+        <div class="container">
+            <div class="section-header text-center mb-5" data-aos="fade-up">
+                <span class="section-label">{{ app()->getLocale() === 'en' ? 'Our Projects on the Map' : 'مشاريعنا على الخريطة' }}</span>
+                <h2 class="section-title">{{ app()->getLocale() === 'en' ? 'Explore Properties Geographically' : 'استكشف العقارات جغرافياً' }}</h2>
+                <div class="title-divider"><span></span></div>
+            </div>
         </div>
 
-        <div class="map-wrapper" data-aos="fade-up" data-aos-delay="100">
-            <div id="projects-map" style="height:520px;border-radius:16px;overflow:hidden;"></div>
+        @if($mapProjects->isNotEmpty())
+        {{-- Interactive Leaflet map when coordinates exist --}}
+        <div class="map-split-layout">
+            <div class="map-split-map" data-aos="fade-right">
+                <div id="projects-map"></div>
+            </div>
+            <div class="map-split-list" data-aos="fade-left">
+                <div class="map-project-list">
+                    @foreach($mapProjects->take(6) as $p)
+                    <a href="{{ route('projects.show', $p->slug) }}" class="map-project-item" data-lat="{{ $p->latitude }}" data-lng="{{ $p->longitude }}">
+                        <img src="{{ $p->getMainImageThumbUrl() }}" alt="{{ $p->getTitle() }}" class="map-project-thumb"
+                             onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=120&q=60'">
+                        <div class="map-project-info">
+                            <div class="map-project-name">{{ $p->getTitle() }}</div>
+                            <div class="map-project-loc"><i class="fas fa-map-marker-alt"></i> {{ $p->getLocation() }}</div>
+                            @if($p->price_usd)<div class="map-project-price">${{ number_format($p->price_usd, 0) }}</div>@endif
+                        </div>
+                        <i class="fas fa-chevron-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }} map-project-arrow"></i>
+                    </a>
+                    @endforeach
+                    @if($mapProjects->count() > 6)
+                    <a href="{{ route('projects.index') }}" class="map-view-all">
+                        {{ app()->getLocale() === 'en' ? 'View all ' . $mapProjects->count() . ' projects' : 'عرض كل ' . $mapProjects->count() . ' مشروع' }}
+                        <i class="fas fa-arrow-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}"></i>
+                    </a>
+                    @endif
+                </div>
+            </div>
         </div>
+        <script id="map-projects-data" type="application/json">{!! json_encode($mapData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 
-        @if($mapProjects->isEmpty())
-        <div class="text-center mt-4">
-            <p class="text-muted">
-                <i class="fas fa-map-marker-alt me-2"></i>
-                {{ app()->getLocale() === 'en' ? 'Add coordinates to your projects from the admin panel to display them on the map.' : 'أضف إحداثيات لمشاريعك من لوحة التحكم لعرضها على الخريطة.' }}
+        @else
+        {{-- Fallback: static map image + project location cards --}}
+        <div class="container">
+            <div class="map-fallback-wrapper" data-aos="fade-up">
+                <div class="map-fallback-bg">
+                    <img src=""
+                         alt="Map" class="map-fallback-img"
+                         onerror="this.parentElement.style.background='linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)'">
+                    <div class="map-fallback-overlay">
+                        <div class="map-fallback-content text-center">
+                            <div class="map-globe-icon mb-3">
+                                <i class="fas fa-globe-asia"></i>
+                            </div>
+                            <h3 class="text-white mb-2">{{ app()->getLocale() === 'en' ? 'Projects Across the Region' : 'مشاريع في جميع أنحاء المنطقة' }}</h3>
+                            <p class="text-white-50 mb-4">{{ app()->getLocale() === 'en' ? 'Our projects span Turkey, Iraq, and the Gulf' : 'مشاريعنا تمتد في تركيا والعراق ودول الخليج' }}</p>
+                            {{-- Location pins from project locations --}}
+                            <div class="map-location-pins d-flex flex-wrap justify-content-center gap-3">
+                                @foreach($allProjectsForMap->take(8) as $p)
+                                <a href="{{ route('projects.show', $p->slug) }}" class="map-location-pin">
+                                    <span class="pin-dot"></span>
+                                    <span class="pin-label">{{ $p->getLocation() }}</span>
+                                </a>
+                                @endforeach
+                            </div>
+                            <a href="{{ route('projects.index') }}" class="btn btn-gold mt-4">
+                                <i class="fas fa-building me-2"></i>{{ app()->getLocale() === 'en' ? 'Browse All Projects' : 'تصفح جميع المشاريع' }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-muted small mt-3">
+                <i class="fas fa-info-circle me-1"></i>
+                {{ app()->getLocale() === 'en' ? 'Add GPS coordinates to projects from the admin panel to enable the interactive map.' : 'أضف إحداثيات GPS للمشاريع من لوحة التحكم لتفعيل الخريطة التفاعلية.' }}
             </p>
-            <a href="{{ route('projects.index') }}" class="btn btn-outline-gold mt-2">
-                {{ app()->getLocale() === 'en' ? 'Browse All Projects' : 'تصفح جميع المشاريع' }}
-            </a>
         </div>
         @endif
-
-        @php
-        $mapData = $mapProjects->map(fn($p) => [
-            'lat'   => (float) $p->latitude,
-            'lng'   => (float) $p->longitude,
-            'title' => $p->getTitle(),
-            'loc'   => $p->getLocation(),
-            'img'   => $p->getMainImageThumbUrl(),
-            'url'   => route('projects.show', $p->slug),
-            'price' => $p->price_usd ? '$' . number_format($p->price_usd, 0) : null,
-            'type'  => $p->type,
-        ])->values();
-        @endphp
-        <script id="map-projects-data" type="application/json">{!! json_encode($mapData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     </div>
 </section>
 
@@ -438,54 +492,74 @@
 @endpush
 
 @push('map_js')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLcE=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLcE=" crossorigin="anonymous"></script>
 <script>
 (function() {
-    var el = document.getElementById('projects-map');
-    var dataEl = document.getElementById('map-projects-data');
+    var el      = document.getElementById('projects-map');
+    var dataEl  = document.getElementById('map-projects-data');
     if (!el || !dataEl) return;
 
-    var projects = JSON.parse(dataEl.textContent || '[]');
-    if (!projects.length) return;
-
+    var projects     = JSON.parse(dataEl.textContent || '[]');
     var validProjects = projects.filter(function(p) { return p.lat && p.lng; });
     if (!validProjects.length) return;
 
+    // Dark tile layer
     var map = L.map('projects-map', { scrollWheelZoom: false, zoomControl: true });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 18
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        maxZoom: 19
     }).addTo(map);
 
     var goldIcon = L.divIcon({
-        html: '<div style="background:#c8a96e;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -35],
+        html: '<div style="width:14px;height:14px;background:#c8a96e;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 4px rgba(200,169,110,0.35);"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+        popupAnchor: [0, -12],
+        className: ''
+    });
+    var goldIconActive = L.divIcon({
+        html: '<div style="width:18px;height:18px;background:#e6c27a;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 6px rgba(200,169,110,0.5);"></div>',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+        popupAnchor: [0, -14],
         className: ''
     });
 
-    var bounds = [];
-    validProjects.forEach(function(p) {
+    var markers = {};
+    var bounds  = [];
+
+    validProjects.forEach(function(p, i) {
         bounds.push([p.lat, p.lng]);
-        var imgHtml = p.img ? '<img src="' + p.img + '" class="map-popup-img" alt="' + p.title + '" onerror="this.style.display=\'none\'">' : '';
-        var priceHtml = p.price ? '<div class="map-popup-price">' + p.price + '</div>' : '';
-        var popup = '<div style="min-width:160px;">'
-            + imgHtml
-            + '<div class="map-popup-title">' + p.title + '</div>'
-            + '<div class="map-popup-loc"><i class="fas fa-map-marker-alt" style="color:#c8a96e;margin-left:3px;margin-right:3px;"></i>' + p.loc + '</div>'
+        var imgHtml   = p.img   ? '<img src="' + p.img + '" style="width:100%;height:90px;object-fit:cover;border-radius:6px;margin-bottom:6px;" onerror="this.style.display=\'none\'">' : '';
+        var priceHtml = p.price ? '<div style="color:#c8a96e;font-weight:600;font-size:0.85rem;">' + p.price + '</div>' : '';
+        var popup = L.popup({ maxWidth: 200, className: 'map-custom-popup' }).setContent(
+            '<div>' + imgHtml
+            + '<div style="font-weight:700;font-size:0.9rem;margin-bottom:3px;">' + p.title + '</div>'
+            + '<div style="font-size:0.75rem;color:#888;margin-bottom:4px;"><i class="fas fa-map-marker-alt" style="color:#c8a96e;"></i> ' + p.loc + '</div>'
             + priceHtml
-            + '<a href="' + p.url + '" class="map-popup-link">عرض المشروع</a>'
-            + '</div>';
-        L.marker([p.lat, p.lng], { icon: goldIcon }).addTo(map).bindPopup(popup);
+            + '<a href="' + p.url + '" style="display:inline-block;margin-top:8px;padding:4px 14px;background:#c8a96e;color:#fff;border-radius:20px;font-size:0.8rem;text-decoration:none;">عرض المشروع</a>'
+            + '</div>'
+        );
+        var marker = L.marker([p.lat, p.lng], { icon: goldIcon }).addTo(map).bindPopup(popup);
+        markers[i] = marker;
     });
 
-    if (bounds.length === 1) {
-        map.setView(bounds[0], 13);
-    } else {
-        map.fitBounds(bounds, { padding: [40, 40] });
-    }
+    bounds.length === 1 ? map.setView(bounds[0], 13) : map.fitBounds(bounds, { padding: [50, 50] });
+
+    // Sidebar list interaction
+    document.querySelectorAll('.map-project-item').forEach(function(item, i) {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            var lat = parseFloat(item.dataset.lat);
+            var lng = parseFloat(item.dataset.lng);
+            if (!lat || !lng) return;
+            document.querySelectorAll('.map-project-item').forEach(function(el) { el.classList.remove('active'); });
+            item.classList.add('active');
+            map.setView([lat, lng], 14, { animate: true });
+            if (markers[i]) { markers[i].setIcon(goldIconActive); markers[i].openPopup(); }
+            setTimeout(function() { if (markers[i]) markers[i].setIcon(goldIcon); }, 3000);
+        });
+    });
 })();
 </script>
 @endpush
