@@ -81,6 +81,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ── Contacts / CRM ──────────────────────────────────────────────────
         Route::middleware('admin.permission:contacts.view')->group(function () {
             Route::get('contacts',          [AdminContactController::class, 'index'])->name('contacts.index');
+            Route::get('contacts/export',   [AdminContactController::class, 'export'])->name('contacts.export');
             Route::get('contacts/{contact}',[AdminContactController::class, 'show'])->name('contacts.show');
         });
         Route::middleware('admin.permission:contacts.edit')->group(function () {

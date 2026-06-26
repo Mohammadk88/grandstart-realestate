@@ -39,6 +39,12 @@
                 @endif
             </div>
 
+            @if($contact->contact_number)
+            <div class="info-row">
+                <span class="info-label">رقم العميل</span>
+                <span class="badge" style="background:var(--gold)20; color:var(--gold); border:1px solid var(--gold)40; font-size:0.85rem; font-weight:700; letter-spacing:1px;">{{ $contact->contact_number }}</span>
+            </div>
+            @endif
             <div class="info-row"><span class="info-label">الاسم</span> {{ $contact->name }}</div>
             @if($contact->email)
             <div class="info-row">
@@ -70,6 +76,15 @@
                     {{ $contact->project->getTitle() }}
                 </a>
             </div>
+            @endif
+            @if($contact->budget_range)
+            <div class="info-row"><span class="info-label">الميزانية</span> {{ \App\Models\Contact::BUDGET_RANGES[$contact->budget_range] ?? $contact->budget_range }}</div>
+            @endif
+            @if($contact->preferred_contact && $contact->preferred_contact !== 'any')
+            <div class="info-row"><span class="info-label">وسيلة التواصل</span> {{ \App\Models\Contact::PREFERRED_CONTACT[$contact->preferred_contact] ?? $contact->preferred_contact }}</div>
+            @endif
+            @if($contact->language)
+            <div class="info-row"><span class="info-label">لغة العميل</span> {{ strtoupper($contact->language) }}</div>
             @endif
             <div class="info-row"><span class="info-label">تاريخ التواصل</span> {{ $contact->created_at->format('Y/m/d H:i') }} ({{ $contact->created_at->diffForHumans() }})</div>
         </div>

@@ -33,6 +33,22 @@ class Contact extends Model
         self::PRIORITY_URGENT => ['label' => 'عاجل',   'color' => '#dc2626', 'icon' => 'fa-fire'],
     ];
 
+    const BUDGET_RANGES = [
+        ''           => 'غير محدد',
+        '0-50k'      => 'أقل من 50,000 $',
+        '50k-100k'   => '50,000 - 100,000 $',
+        '100k-200k'  => '100,000 - 200,000 $',
+        '200k-500k'  => '200,000 - 500,000 $',
+        '500k+'      => 'أكثر من 500,000 $',
+    ];
+
+    const PREFERRED_CONTACT = [
+        'any'      => 'أي وسيلة',
+        'whatsapp' => 'واتساب',
+        'call'     => 'اتصال',
+        'email'    => 'بريد إلكتروني',
+    ];
+
     protected $fillable = [
         'name', 'email', 'phone',
         'message', 'project_id',
@@ -41,6 +57,7 @@ class Contact extends Model
         'status', 'priority',
         'assigned_to', 'crm_notes',
         'follow_up_at', 'last_action_at', 'last_action_by',
+        'contact_number', 'budget_range', 'preferred_contact', 'language',
     ];
 
     protected $casts = [

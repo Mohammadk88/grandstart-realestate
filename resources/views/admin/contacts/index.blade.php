@@ -159,7 +159,12 @@
             <span class="sidebar-badge ms-2">{{ $unreadCount }} غير مقروء</span>
             @endif
         </div>
-        <span class="text-muted small">صفحة {{ $contacts->currentPage() }} / {{ $contacts->lastPage() }}</span>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="text-muted small">صفحة {{ $contacts->currentPage() }} / {{ $contacts->lastPage() }}</span>
+            <a href="{{ route('admin.contacts.export', request()->query()) }}" class="btn btn-sm btn-outline-success">
+                <i class="fas fa-file-csv me-1"></i> تصدير CSV
+            </a>
+        </div>
     </div>
     <div class="table-responsive">
     <table class="table">
@@ -188,11 +193,12 @@
             @endif
             <td>
                 <div style="font-size:0.88rem;">
+                    @if(!$contact->is_read)<span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#3b82f6; margin-left:5px; vertical-align:middle;"></span>@endif
                     {{ $contact->name }}
-                    @if(!$contact->is_read)
-                    <span class="badge ms-1" style="background:#3b82f620; color:#3b82f6; font-size:0.65rem;">جديد</span>
-                    @endif
                 </div>
+                @if($contact->contact_number)
+                <div style="font-size:0.7rem; color:var(--gold); font-weight:600; letter-spacing:0.5px;">{{ $contact->contact_number }}</div>
+                @endif
                 <div class="text-muted" style="font-size:0.78rem;">
                     @if($contact->phone)<i class="fas fa-phone fa-xs me-1"></i>{{ $contact->phone }} @endif
                     @if($contact->country_code) &nbsp;🌍 {{ $contact->country_code }} @endif

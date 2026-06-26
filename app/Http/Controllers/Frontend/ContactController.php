@@ -33,13 +33,19 @@ class ContactController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
+        $year   = now()->format('y');
+        $seq    = str_pad(Contact::whereYear('created_at', now()->year)->count() + 1, 4, '0', STR_PAD_LEFT);
+        $number = "GS-{$year}-{$seq}";
+
         Contact::create([
-            'name'         => $validated['name'],
-            'email'        => $validated['email'] ?? null,
-            'phone'        => $validated['phone'],
-            'message'      => $validated['message'],
-            'country_code' => $request->get('visitor_country', 'AE'),
-            'source'       => 'contact_form',
+            'contact_number' => $number,
+            'name'           => $validated['name'],
+            'email'          => $validated['email'] ?? null,
+            'phone'          => $validated['phone'],
+            'message'        => $validated['message'],
+            'country_code'   => $request->get('visitor_country', 'AE'),
+            'source'         => 'contact_form',
+            'language'       => app()->getLocale(),
         ]);
 
         return back()->with('success', __('app.message_sent'));

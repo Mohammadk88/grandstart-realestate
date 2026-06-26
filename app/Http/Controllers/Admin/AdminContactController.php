@@ -172,6 +172,63 @@ class AdminContactController extends Controller
         return back()->with('success', $message);
     }
 
+    public function export(Request $request)
+    {
+        $query = Contact::with(['project', 'assignedAdmin']);
+
+        if ($request->filled('status'))   $query->where('status', $request->status);
+        if ($request->filled('priority')) $query->where('priority', $request->priority);
+        if ($request->filled('assigned')) {
+            $request->assigned === 'unassigned'
+                ? $query->whereNull('assigned_to')
+                : $query->where('assigned_to', $request->assigned);
+        }
+
+        $contacts = $query->orderBy('created_at', 'desc')->get();
+
+        $filename = 'contacts_' . now()->format('Y-m-d_H-i') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($contacts) {
+            $file = fopen('php://output', 'w');
+            // UTF-8 BOM for Excel
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($file, [
+                'رقم العميل', 'الاسم', 'الهاتف', 'البريد', 'الدولة', 'المشروع',
+                'الحالة', 'الأولوية', 'الميزانية', 'المسؤول', 'ملاحظات CRM',
+                'موعد المتابعة', 'المصدر', 'تاريخ التواصل',
+            ]);
+
+            foreach ($contacts as $c) {
+                fputcsv($file, [
+                    $c->contact_number ?? $c->id,
+                    $c->name,
+                    $c->phone,
+                    $c->email,
+                    $c->country_code,
+                    $c->project?->getTitle(),
+                    $c->getStatusLabel(),
+                    $c->getPriorityLabel(),
+                    $c->budget_range,
+                    $c->assignedAdmin?->name,
+                    $c->crm_notes,
+                    $c->follow_up_at?->format('Y-m-d H:i'),
+                    $c->source,
+                    $c->created_at->format('Y-m-d H:i'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function destroy(Contact $contact)
     {
         $contact->delete();
