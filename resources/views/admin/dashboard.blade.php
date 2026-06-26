@@ -217,14 +217,21 @@
             @php $maxM = max(1, max(array_column($monthlyContacts, 'total'))); @endphp
             <div class="bar-chart-wrap">
                 @foreach($monthlyContacts as $m)
+                @php
+                    $mTotal     = $m['total'];
+                    $mConverted = $m['converted'];
+                    $mRest      = $mTotal - $mConverted;
+                    $hConv = max(3, ($mConverted / max(1, $mTotal)) * max(4, ($mTotal / $maxM) * 68));
+                    $hRest = max(3, ($mRest / $maxM) * 68);
+                @endphp
                 <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;">
                     <div style="flex:1; width:100%; display:flex; flex-direction:column; justify-content:flex-end; gap:2px;">
                         <div class="bar-chart-bar"
-                             style="height:{{ max(3, ($m['converted']/max(1,$m['total']))*max(4,($m['total']/$maxM)*68) }}px; background:#10b981; border-radius:3px 3px 0 0; opacity:0.9;"
-                             data-val="تحويل: {{ $m['converted'] }}"></div>
+                             style="height:{{ $hConv }}px; background:#10b981; border-radius:3px 3px 0 0; opacity:0.9;"
+                             data-val="تحويل: {{ $mConverted }}"></div>
                         <div class="bar-chart-bar"
-                             style="height:{{ max(3, (($m['total']-$m['converted'])/$maxM)*68) }}px; background:var(--gold); border-radius:3px 3px 0 0;"
-                             data-val="إجمالي: {{ $m['total'] }}"></div>
+                             style="height:{{ $hRest }}px; background:var(--gold); border-radius:3px 3px 0 0;"
+                             data-val="إجمالي: {{ $mTotal }}"></div>
                     </div>
                     <div class="bar-label">{{ $m['label'] }}</div>
                 </div>
