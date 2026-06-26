@@ -172,6 +172,12 @@
                                value="{{ old('district', $project->district) }}"
                                placeholder="مثال: بشيكتاش، المرسى، وسط المدينة">
                     </div>
+                    <div class="col-12">
+                        <label class="form-label">تفاصيل العنوان <span class="text-muted">(اختياري)</span></label>
+                        <input type="text" name="address_detail" class="form-control"
+                               value="{{ old('address_detail', $project->address_detail) }}"
+                               placeholder="رقم الشارع، اسم المبنى، أي تفاصيل إضافية...">
+                    </div>
                 </div>
                 <p class="text-muted small mt-2 mb-0">
                     <i class="fas fa-info-circle me-1"></i>

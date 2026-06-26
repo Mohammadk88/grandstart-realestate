@@ -20,7 +20,7 @@ class Project extends Model
         'main_image',
         'video_url',
         'latitude', 'longitude',
-        'country', 'city', 'district',
+        'country', 'city', 'district', 'address_detail',
         'delivery_date',
         'sort_order',
     ];

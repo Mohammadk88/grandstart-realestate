@@ -251,6 +251,9 @@
                         <span class="location-tag"><i class="fas fa-map-pin me-1"></i>{{ $project->district }}</span>
                         @endif
                     </div>
+                    @if($project->address_detail)
+                    <p class="mt-2 mb-0 text-muted small"><i class="fas fa-info-circle me-1"></i>{{ $project->address_detail }}</p>
+                    @endif
                 </div>
                 @endif
 

@@ -246,9 +246,10 @@ class AdminProjectController extends Controller
             'video_url'     => 'nullable|url',
             'latitude'      => 'nullable|numeric',
             'longitude'     => 'nullable|numeric',
-            'country'       => 'nullable|string|max:10',
-            'city'          => 'nullable|string|max:100',
-            'district'      => 'nullable|string|max:150',
+            'country'        => 'nullable|string|max:10',
+            'city'           => 'nullable|string|max:100',
+            'district'       => 'nullable|string|max:150',
+            'address_detail' => 'nullable|string|max:255',
             'delivery_date' => 'nullable|date',
             'sort_order'    => 'nullable|integer',
         ]);
