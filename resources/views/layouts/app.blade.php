@@ -35,19 +35,20 @@
     <meta name="twitter:image"       content="{{ $seoImage }}">
 
     <!-- JSON-LD Organization (GEO/AEO) -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "RealEstateAgent",
-        "name": "{{ $siteName }}",
-        "url": "{{ url('/') }}",
-        "logo": "{{ asset('images/logo.png') }}",
-        "image": "{{ $seoImage }}",
-        "description": "{{ $seoDescription }}",
-        "@id": "{{ url('/') }}/#organization",
-        "sameAs": []
-    }
-    </script>
+    @php
+    $orgSchema = [
+        '@context'    => 'https://schema.org',
+        '@type'       => 'RealEstateAgent',
+        'name'        => $siteName,
+        'url'         => url('/'),
+        'logo'        => asset('images/logo.png'),
+        'image'       => $seoImage,
+        'description' => $seoDescription,
+        '@id'         => url('/') . '/#organization',
+        'sameAs'      => [],
+    ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($orgSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 
     @stack('schema')
 

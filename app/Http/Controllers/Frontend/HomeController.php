@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\CountryContact;
+use App\Models\HeroSlide;
+use App\Models\PageSection;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Services\CountryContactService;
@@ -36,6 +38,12 @@ class HomeController extends Controller
             'countries' => Setting::get('countries_count', '5'),
         ];
 
+        $heroType   = Setting::get('hero_type', 'static');
+        $heroSlides = HeroSlide::active();
+
+        PageSection::seedDefaults();
+        $sections = PageSection::where('page', 'home')->orderBy('sort_order')->get();
+
         $whatsapp = $contact['whatsapp'];
 
         return view('frontend.home', compact(
@@ -44,7 +52,10 @@ class HomeController extends Controller
             'stats',
             'countryCode',
             'whatsapp',
-            'countryContact'
+            'countryContact',
+            'heroType',
+            'heroSlides',
+            'sections'
         ));
     }
 }

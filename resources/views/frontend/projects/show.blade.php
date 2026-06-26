@@ -6,39 +6,33 @@
 @section('og_image', $project->getMainImageUrl())
 
 @push('schema')
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "@id": "{{ route('projects.show', $project->slug) }}",
-    "name": "{{ $project->getTitle() }}",
-    "description": "{{ Str::limit(strip_tags($project->getDescription()), 300) }}",
-    "image": "{{ $project->getMainImageUrl() }}",
-    "url": "{{ route('projects.show', $project->slug) }}",
-    "brand": {
-        "@type": "Brand",
-        "name": "{{ \App\Models\Setting::get('company_name_' . app()->getLocale(), 'Grand Start Real Estate') }}"
-    },
-    @if($project->price_usd)
-    "offers": {
-        "@type": "Offer",
-        "priceCurrency": "USD",
-        "price": "{{ $project->price_usd }}",
-        "availability": "{{ $project->status === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}"
-    },
-    @endif
-    "additionalProperty": [
-        @if($project->area)
-        {"@type": "PropertyValue", "name": "Area", "value": "{{ $project->area }}"},
-        @endif
-        @if($project->floors)
-        {"@type": "PropertyValue", "name": "Floors", "value": "{{ $project->floors }}"},
-        @endif
-        {"@type": "PropertyValue", "name": "Status", "value": "{{ $project->status }}"},
-        {"@type": "PropertyValue", "name": "Type", "value": "{{ $project->type }}"}
-    ]
-}
-</script>
+@php
+    $schema = [
+        '@context' => 'https://schema.org',
+        '@type'    => 'Product',
+        '@id'      => route('projects.show', $project->slug),
+        'name'     => $project->getTitle(),
+        'description' => Str::limit(strip_tags($project->getDescription()), 300),
+        'image'    => $project->getMainImageUrl(),
+        'url'      => route('projects.show', $project->slug),
+        'brand'    => ['@type' => 'Brand', 'name' => \App\Models\Setting::get('company_name_' . app()->getLocale(), 'Grand Start Real Estate')],
+        'additionalProperty' => array_filter([
+            $project->area   ? ['@type' => 'PropertyValue', 'name' => 'Area',   'value' => $project->area]   : null,
+            $project->floors ? ['@type' => 'PropertyValue', 'name' => 'Floors', 'value' => $project->floors] : null,
+            ['@type' => 'PropertyValue', 'name' => 'Status', 'value' => $project->status],
+            ['@type' => 'PropertyValue', 'name' => 'Type',   'value' => $project->type],
+        ]),
+    ];
+    if ($project->price_usd) {
+        $schema['offers'] = [
+            '@type'        => 'Offer',
+            'priceCurrency'=> 'USD',
+            'price'        => (string) $project->price_usd,
+            'availability' => $project->status === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        ];
+    }
+@endphp
+<script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
 @endpush
 
 @section('content')

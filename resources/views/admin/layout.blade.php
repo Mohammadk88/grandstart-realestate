@@ -307,6 +307,12 @@
             <a href="{{ route('admin.pages.index') }}" class="sidebar-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
                 <i class="fas fa-file-alt"></i> الصفحات
             </a>
+            <a href="{{ route('admin.hero.index') }}" class="sidebar-link {{ request()->routeIs('admin.hero.*') ? 'active' : '' }}">
+                <i class="fas fa-images"></i> البانر الرئيسي
+            </a>
+            <a href="{{ route('admin.page-builder.index') }}" class="sidebar-link {{ request()->routeIs('admin.page-builder.*') ? 'active' : '' }}">
+                <i class="fas fa-th-large"></i> ترتيب الأقسام
+            </a>
 
             <div class="nav-section-title mt-2">الإعدادات</div>
             <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">

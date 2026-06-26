@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\AdminLanguageController;
 use App\Http\Controllers\Admin\AdminCountryController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\PageController;
+use App\Http\Controllers\Admin\HeroSlideController;
+use App\Http\Controllers\Admin\PageBuilderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -85,5 +87,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Pages
         Route::resource('pages', PageController::class)->only(['index', 'edit', 'update']);
+
+        // Hero Slides
+        Route::get('/hero', [HeroSlideController::class, 'index'])->name('hero.index');
+        Route::post('/hero', [HeroSlideController::class, 'store'])->name('hero.store');
+        Route::post('/hero/type', [HeroSlideController::class, 'setType'])->name('hero.type');
+        Route::post('/hero/reorder', [HeroSlideController::class, 'reorder'])->name('hero.reorder');
+        Route::put('/hero/{heroSlide}', [HeroSlideController::class, 'update'])->name('hero.update');
+        Route::delete('/hero/{heroSlide}', [HeroSlideController::class, 'destroy'])->name('hero.destroy');
+
+        // Page Builder
+        Route::get('/page-builder', [PageBuilderController::class, 'index'])->name('page-builder.index');
+        Route::post('/page-builder/reorder', [PageBuilderController::class, 'reorder'])->name('page-builder.reorder');
+        Route::post('/page-builder/{pageSection}/toggle', [PageBuilderController::class, 'toggle'])->name('page-builder.toggle');
     });
 });
