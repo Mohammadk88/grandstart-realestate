@@ -385,10 +385,8 @@ $mapData = $mapProjects->map(fn($p) => [
         {{-- Fallback: static map image + project location cards --}}
         <div class="container">
             <div class="map-fallback-wrapper" data-aos="fade-up">
-                <div class="map-fallback-bg">
-                    <img src=""
-                         alt="Map" class="map-fallback-img"
-                         onerror="this.parentElement.style.background='linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)'">
+                <div class="map-fallback-bg" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);">
+
                     <div class="map-fallback-overlay">
                         <div class="map-fallback-content text-center">
                             <div class="map-globe-icon mb-3">
