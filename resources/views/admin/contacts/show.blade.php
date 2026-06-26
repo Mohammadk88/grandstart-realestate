@@ -176,7 +176,7 @@
                             <option value="">— بدون تعيين —</option>
                             @foreach($agents as $agent)
                             <option value="{{ $agent->id }}" {{ $contact->assigned_to == $agent->id ? 'selected' : '' }}>
-                                {{ $agent->name }} ({{ \App\Models\Admin::ROLES[$agent->role] ?? '' }})
+                                {{ $agent->name }}
                             </option>
                             @endforeach
                         </select>

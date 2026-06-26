@@ -99,7 +99,7 @@ class DashboardController extends Controller
             'assignedContacts as converted' => fn($q) => $q->where('status', Contact::STATUS_CONVERTED),
             'assignedContacts as in_progress' => fn($q) => $q->where('status', Contact::STATUS_IN_PROGRESS),
         ])
-        ->whereIn('role', [Admin::ROLE_SUPER_ADMIN, Admin::ROLE_MANAGER, Admin::ROLE_CALL_CENTER])
+        ->where('role', Admin::ROLE_CALL_CENTER)
         ->where('active', true)
         ->orderByDesc('total_assigned')
         ->get();

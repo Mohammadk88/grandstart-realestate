@@ -64,9 +64,9 @@ class AdminContactController extends Controller
 
         $unreadCount = Contact::where('is_read', false)->count();
         $dueCount    = Contact::dueFollowUp()->count();
-        $agents      = Admin::where('active', true)
-                            ->whereIn('role', [Admin::ROLE_SUPER_ADMIN, Admin::ROLE_MANAGER, Admin::ROLE_CALL_CENTER])
-                            ->orderBy('name')->get();
+        $agents = Admin::where('active', true)
+                       ->where('role', Admin::ROLE_CALL_CENTER)
+                       ->orderBy('name')->get();
 
         $statusCounts = Contact::selectRaw('status, count(*) as cnt')
             ->where('status', '!=', Contact::STATUS_SPAM)
@@ -86,7 +86,7 @@ class AdminContactController extends Controller
         }
 
         $agents = Admin::where('active', true)
-            ->whereIn('role', [Admin::ROLE_SUPER_ADMIN, Admin::ROLE_MANAGER, Admin::ROLE_CALL_CENTER])
+            ->where('role', Admin::ROLE_CALL_CENTER)
             ->orderBy('name')->get();
 
         return view('admin.contacts.show', compact('contact', 'agents'));
