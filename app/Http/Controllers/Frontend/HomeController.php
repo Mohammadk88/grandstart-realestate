@@ -13,6 +13,13 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
+    private function extractCity(string $location): string
+    {
+        // "بشيكتاش، إسطنبول" → "إسطنبول"
+        $parts = preg_split('/[,،]/u', $location);
+        return trim(end($parts)) ?: trim($location);
+    }
+
     public function index(Request $request)
     {
         $countryCode    = $request->get('visitor_country', 'TR');
@@ -46,6 +53,23 @@ class HomeController extends Controller
 
         $whatsapp = $contact['whatsapp'];
 
+        // Projects with coordinates for the map section
+        $mapProjects = Project::active()
+            ->with(['translations', 'images'])
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', '')
+            ->where('longitude', '!=', '')
+            ->take(50)
+            ->get();
+
+        // Areas/cities extracted from location translations
+        $areaProjects = Project::active()
+            ->with(['translations', 'images'])
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy(fn ($p) => $this->extractCity($p->getLocation()));
+
         return view('frontend.home', compact(
             'featuredProjects',
             'latestProjects',
@@ -55,7 +79,9 @@ class HomeController extends Controller
             'countryContact',
             'heroType',
             'heroSlides',
-            'sections'
+            'sections',
+            'mapProjects',
+            'areaProjects'
         ));
     }
 }

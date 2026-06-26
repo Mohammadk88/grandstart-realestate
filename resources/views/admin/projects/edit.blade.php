@@ -125,16 +125,22 @@
 
             <div class="form-card">
                 <div class="form-card-title"><i class="fas fa-map-marker-alt"></i> الموقع الجغرافي</div>
-                <div class="row g-3">
+                <div class="row g-3 mb-3">
                     <div class="col-6">
-                        <label class="form-label">خط العرض</label>
-                        <input type="number" name="latitude" class="form-control" step="any" value="{{ old('latitude', $project->latitude) }}">
+                        <label class="form-label">خط العرض (Latitude)</label>
+                        <input type="number" name="latitude" id="input-lat" class="form-control" step="any"
+                               value="{{ old('latitude', $project->latitude) }}"
+                               placeholder="مثال: 41.0082">
                     </div>
                     <div class="col-6">
-                        <label class="form-label">خط الطول</label>
-                        <input type="number" name="longitude" class="form-control" step="any" value="{{ old('longitude', $project->longitude) }}">
+                        <label class="form-label">خط الطول (Longitude)</label>
+                        <input type="number" name="longitude" id="input-lng" class="form-control" step="any"
+                               value="{{ old('longitude', $project->longitude) }}"
+                               placeholder="مثال: 28.9784">
                     </div>
                 </div>
+                <p class="text-muted small mb-2"><i class="fas fa-info-circle me-1"></i> انقر على الخريطة لتحديد موقع المشروع تلقائياً، أو أدخل الإحداثيات يدوياً.</p>
+                <div id="admin-pick-map" style="height:320px;border-radius:10px;border:1px solid #dee2e6;"></div>
             </div>
 
             <!-- Features -->
@@ -321,5 +327,61 @@ function buildFeatureRow(index) {
 document.getElementById('addFeatureBtn').addEventListener('click', function() {
     document.getElementById('featuresContainer').insertAdjacentHTML('beforeend', buildFeatureRow(featureCount++));
 });
+</script>
+@endpush
+
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+@endpush
+
+@push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function() {
+    var latInput = document.getElementById('input-lat');
+    var lngInput = document.getElementById('input-lng');
+    var initLat  = parseFloat(latInput.value) || 41.0082;
+    var initLng  = parseFloat(lngInput.value) || 28.9784;
+    var zoom     = (latInput.value && lngInput.value) ? 13 : 5;
+
+    var map = L.map('admin-pick-map').setView([initLat, initLng], zoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
+    }).addTo(map);
+
+    var marker = null;
+    if (latInput.value && lngInput.value) {
+        marker = L.marker([initLat, initLng], { draggable: true }).addTo(map);
+        bindDrag(marker);
+    }
+
+    map.on('click', function(e) {
+        setCoords(e.latlng.lat, e.latlng.lng);
+        if (marker) { marker.setLatLng(e.latlng); }
+        else { marker = L.marker(e.latlng, { draggable: true }).addTo(map); bindDrag(marker); }
+    });
+
+    [latInput, lngInput].forEach(function(inp) {
+        inp.addEventListener('change', function() {
+            var lat = parseFloat(latInput.value), lng = parseFloat(lngInput.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.setView([lat, lng], 13);
+                if (marker) { marker.setLatLng([lat, lng]); }
+                else { marker = L.marker([lat, lng], { draggable: true }).addTo(map); bindDrag(marker); }
+            }
+        });
+    });
+
+    function bindDrag(m) {
+        m.on('dragend', function(e) {
+            var ll = e.target.getLatLng();
+            setCoords(ll.lat, ll.lng);
+        });
+    }
+    function setCoords(lat, lng) {
+        latInput.value = lat.toFixed(6);
+        lngInput.value = lng.toFixed(6);
+    }
+})();
 </script>
 @endpush

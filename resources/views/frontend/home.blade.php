@@ -159,6 +159,103 @@
     </div>
 </section>
 
+{{-- ====== SEARCH BY AREA ====== --}}
+@elseif($section->key === 'search_area')
+<section class="section-search-area py-6">
+    <div class="container">
+        <div class="section-header text-center mb-5" data-aos="fade-up">
+            <span class="section-label">{{ app()->getLocale() === 'en' ? 'Browse by Area' : 'تصفح حسب المنطقة' }}</span>
+            <h2 class="section-title">{{ app()->getLocale() === 'en' ? 'Find Your Property by Location' : 'اعثر على عقارك حسب الموقع' }}</h2>
+            <div class="title-divider"><span></span></div>
+            <p class="section-subtitle mt-3">{{ app()->getLocale() === 'en' ? 'Explore our projects distributed across the most prominent investment cities' : 'استكشف مشاريعنا الموزعة في أبرز المدن الاستثمارية' }}</p>
+        </div>
+
+        {{-- Quick Type Filter Bar --}}
+        <div class="type-filter-bar mb-5" data-aos="fade-up" data-aos-delay="100">
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a href="{{ route('projects.index') }}" class="type-filter-btn {{ !request('type') ? 'active' : '' }}">
+                    <i class="fas fa-th me-2"></i>{{ app()->getLocale() === 'en' ? 'All' : 'الكل' }}
+                </a>
+                @foreach([
+                    'tower'       => ['icon' => 'fas fa-building',    'ar' => 'أبراج',        'en' => 'Towers'],
+                    'villa'       => ['icon' => 'fas fa-home',         'ar' => 'فلل',          'en' => 'Villas'],
+                    'apartment'   => ['icon' => 'fas fa-city',         'ar' => 'شقق',          'en' => 'Apartments'],
+                    'commercial'  => ['icon' => 'fas fa-store',        'ar' => 'تجاري',        'en' => 'Commercial'],
+                    'compound'    => ['icon' => 'fas fa-tree',         'ar' => 'مجمعات',       'en' => 'Compounds'],
+                    'residential' => ['icon' => 'fas fa-house-user',   'ar' => 'سكني',         'en' => 'Residential'],
+                ] as $typeKey => $typeData)
+                <a href="{{ route('projects.index', ['type' => $typeKey]) }}"
+                   class="type-filter-btn {{ request('type') === $typeKey ? 'active' : '' }}">
+                    <i class="{{ $typeData['icon'] }} me-2"></i>{{ app()->getLocale() === 'en' ? $typeData['en'] : $typeData['ar'] }}
+                </a>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- City Cards --}}
+        @if($areaProjects->count())
+        <div class="row g-4" id="area-cards-row">
+            @foreach($areaProjects->take(8) as $city => $cityProjects)
+            @php $firstProject = $cityProjects->first(); @endphp
+            <div class="col-lg-3 col-md-4 col-6" data-aos="fade-up" data-aos-delay="{{ ($loop->index % 4) * 80 }}">
+                <a href="{{ route('projects.index', ['search' => $city]) }}" class="area-card">
+                    <div class="area-card-img-wrap">
+                        <img src="{{ $firstProject->getMainImageThumbUrl() }}"
+                             alt="{{ $city }}"
+                             class="area-card-img"
+                             loading="lazy"
+                             onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=400&q=70'">
+                        <div class="area-card-overlay"></div>
+                    </div>
+                    <div class="area-card-body">
+                        <h3 class="area-card-city">{{ $city }}</h3>
+                        <span class="area-card-count">
+                            {{ $cityProjects->count() }}
+                            {{ app()->getLocale() === 'en' ? ($cityProjects->count() === 1 ? 'project' : 'projects') : 'مشروع' }}
+                        </span>
+                    </div>
+                </a>
+            </div>
+            @endforeach
+        </div>
+
+        @if($areaProjects->count() > 8)
+        <div class="text-center mt-4" data-aos="fade-up">
+            <a href="{{ route('projects.index') }}" class="btn btn-outline-gold">
+                {{ app()->getLocale() === 'en' ? 'View All Cities' : 'عرض كل المدن' }}
+                <i class="fas fa-arrow-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }} ms-2"></i>
+            </a>
+        </div>
+        @endif
+        @else
+        {{-- Fallback: show static city buttons when no projects yet --}}
+        <div class="row g-3 justify-content-center">
+            @foreach([
+                ['name_ar' => 'إسطنبول',  'name_en' => 'Istanbul',  'icon' => 'fas fa-mosque',        'img' => 'https://images.unsplash.com/photo-1527838832700-5059252407fa?w=400&q=70'],
+                ['name_ar' => 'أنطاليا',  'name_en' => 'Antalya',   'icon' => 'fas fa-umbrella-beach', 'img' => 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400&q=70'],
+                ['name_ar' => 'أنقرة',    'name_en' => 'Ankara',    'icon' => 'fas fa-landmark',       'img' => 'https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=400&q=70'],
+                ['name_ar' => 'بغداد',    'name_en' => 'Baghdad',   'icon' => 'fas fa-archway',        'img' => 'https://images.unsplash.com/photo-1548690312-e3b507d8c110?w=400&q=70'],
+                ['name_ar' => 'دبي',      'name_en' => 'Dubai',     'icon' => 'fas fa-star',           'img' => 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=70'],
+                ['name_ar' => 'عمّان',    'name_en' => 'Amman',     'icon' => 'fas fa-city',           'img' => 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?w=400&q=70'],
+            ] as $i => $c)
+            <div class="col-lg-2 col-md-4 col-6" data-aos="fade-up" data-aos-delay="{{ $i * 60 }}">
+                <a href="{{ route('projects.index', ['search' => app()->getLocale() === 'en' ? $c['name_en'] : $c['name_ar']]) }}" class="area-card">
+                    <div class="area-card-img-wrap">
+                        <img src="{{ $c['img'] }}" alt="{{ app()->getLocale() === 'en' ? $c['name_en'] : $c['name_ar'] }}" class="area-card-img" loading="lazy">
+                        <div class="area-card-overlay"></div>
+                    </div>
+                    <div class="area-card-body">
+                        <h3 class="area-card-city">{{ app()->getLocale() === 'en' ? $c['name_en'] : $c['name_ar'] }}</h3>
+                        <span class="area-card-count"><i class="{{ $c['icon'] }}"></i></span>
+                    </div>
+                </a>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+</section>
+
 {{-- ====== WHY US ====== --}}
 @elseif($section->key === 'why_us')
 <section class="section-why bg-dark-section py-6">
@@ -228,6 +325,48 @@
     </div>
 </section>
 
+{{-- ====== MAP ====== --}}
+@elseif($section->key === 'map')
+<section class="section-map py-6 bg-dark-section">
+    <div class="container">
+        <div class="section-header text-center mb-5" data-aos="fade-up">
+            <span class="section-label">{{ app()->getLocale() === 'en' ? 'Our Projects on the Map' : 'مشاريعنا على الخريطة' }}</span>
+            <h2 class="section-title">{{ app()->getLocale() === 'en' ? 'Explore Properties Geographically' : 'استكشف العقارات جغرافياً' }}</h2>
+            <div class="title-divider"><span></span></div>
+        </div>
+
+        <div class="map-wrapper" data-aos="fade-up" data-aos-delay="100">
+            <div id="projects-map" style="height:520px;border-radius:16px;overflow:hidden;"></div>
+        </div>
+
+        @if($mapProjects->isEmpty())
+        <div class="text-center mt-4">
+            <p class="text-muted">
+                <i class="fas fa-map-marker-alt me-2"></i>
+                {{ app()->getLocale() === 'en' ? 'Add coordinates to your projects from the admin panel to display them on the map.' : 'أضف إحداثيات لمشاريعك من لوحة التحكم لعرضها على الخريطة.' }}
+            </p>
+            <a href="{{ route('projects.index') }}" class="btn btn-outline-gold mt-2">
+                {{ app()->getLocale() === 'en' ? 'Browse All Projects' : 'تصفح جميع المشاريع' }}
+            </a>
+        </div>
+        @endif
+
+        @php
+        $mapData = $mapProjects->map(fn($p) => [
+            'lat'   => (float) $p->latitude,
+            'lng'   => (float) $p->longitude,
+            'title' => $p->getTitle(),
+            'loc'   => $p->getLocation(),
+            'img'   => $p->getMainImageThumbUrl(),
+            'url'   => route('projects.show', $p->slug),
+            'price' => $p->price_usd ? '$' . number_format($p->price_usd, 0) : null,
+            'type'  => $p->type,
+        ])->values();
+        @endphp
+        <script id="map-projects-data" type="application/json">{!! json_encode($mapData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    </div>
+</section>
+
 {{-- ====== LATEST PROJECTS ====== --}}
 @elseif($section->key === 'latest' && $latestProjects->count())
 <section class="section-latest bg-dark-section py-6">
@@ -293,6 +432,63 @@
 @endforeach
 
 @endsection
+
+@push('map_css')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+@endpush
+
+@push('map_js')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLcE=" crossorigin=""></script>
+<script>
+(function() {
+    var el = document.getElementById('projects-map');
+    var dataEl = document.getElementById('map-projects-data');
+    if (!el || !dataEl) return;
+
+    var projects = JSON.parse(dataEl.textContent || '[]');
+    if (!projects.length) return;
+
+    var validProjects = projects.filter(function(p) { return p.lat && p.lng; });
+    if (!validProjects.length) return;
+
+    var map = L.map('projects-map', { scrollWheelZoom: false, zoomControl: true });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18
+    }).addTo(map);
+
+    var goldIcon = L.divIcon({
+        html: '<div style="background:#c8a96e;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -35],
+        className: ''
+    });
+
+    var bounds = [];
+    validProjects.forEach(function(p) {
+        bounds.push([p.lat, p.lng]);
+        var imgHtml = p.img ? '<img src="' + p.img + '" class="map-popup-img" alt="' + p.title + '" onerror="this.style.display=\'none\'">' : '';
+        var priceHtml = p.price ? '<div class="map-popup-price">' + p.price + '</div>' : '';
+        var popup = '<div style="min-width:160px;">'
+            + imgHtml
+            + '<div class="map-popup-title">' + p.title + '</div>'
+            + '<div class="map-popup-loc"><i class="fas fa-map-marker-alt" style="color:#c8a96e;margin-left:3px;margin-right:3px;"></i>' + p.loc + '</div>'
+            + priceHtml
+            + '<a href="' + p.url + '" class="map-popup-link">عرض المشروع</a>'
+            + '</div>';
+        L.marker([p.lat, p.lng], { icon: goldIcon }).addTo(map).bindPopup(popup);
+    });
+
+    if (bounds.length === 1) {
+        map.setView(bounds[0], 13);
+    } else {
+        map.fitBounds(bounds, { padding: [40, 40] });
+    }
+})();
+</script>
+@endpush
 
 @if($heroType === 'slider' && $heroSlides->count())
 @push('scripts')
