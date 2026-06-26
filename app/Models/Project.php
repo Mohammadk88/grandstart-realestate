@@ -20,6 +20,7 @@ class Project extends Model
         'main_image',
         'video_url',
         'latitude', 'longitude',
+        'country', 'city', 'district',
         'delivery_date',
         'sort_order',
     ];
@@ -131,7 +132,7 @@ class Project extends Model
         if ($this->main_image) {
             return asset('uploads/' . $this->main_image);
         }
-        return asset('images/project-placeholder.jpg');
+        return asset('images/project-placeholder.svg');
     }
 
     public function getMainImageThumbUrl(): string
@@ -144,7 +145,7 @@ class Project extends Model
             }
             return asset('uploads/' . $this->main_image);
         }
-        return asset('images/project-placeholder.jpg');
+        return asset('images/project-placeholder.svg');
     }
 
     public function getStatusLabel(): string

@@ -125,22 +125,58 @@
 
             <div class="form-card">
                 <div class="form-card-title"><i class="fas fa-map-marker-alt"></i> الموقع الجغرافي</div>
-                <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label class="form-label">خط العرض (Latitude)</label>
-                        <input type="number" name="latitude" id="input-lat" class="form-control" step="any"
-                               value="{{ old('latitude', $project->latitude) }}"
-                               placeholder="مثال: 41.0082">
+                @php
+                $countries = [
+                    'TR' => ['ar' => 'تركيا',        'en' => 'Turkey',       'cities' => ['إسطنبول'=>'Istanbul','أنقرة'=>'Ankara','أنطاليا'=>'Antalya','إزمير'=>'Izmir','بورصة'=>'Bursa','طرابزون'=>'Trabzon','ألانيا'=>'Alanya','مرسين'=>'Mersin']],
+                    'IQ' => ['ar' => 'العراق',        'en' => 'Iraq',         'cities' => ['بغداد'=>'Baghdad','أربيل'=>'Erbil','السليمانية'=>'Sulaymaniyah','النجف'=>'Najaf','كركوك'=>'Kirkuk','البصرة'=>'Basra']],
+                    'AE' => ['ar' => 'الإمارات',      'en' => 'UAE',          'cities' => ['دبي'=>'Dubai','أبوظبي'=>'Abu Dhabi','الشارقة'=>'Sharjah','عجمان'=>'Ajman','رأس الخيمة'=>'Ras Al Khaimah']],
+                    'SA' => ['ar' => 'السعودية',      'en' => 'Saudi Arabia', 'cities' => ['الرياض'=>'Riyadh','جدة'=>'Jeddah','مكة المكرمة'=>'Mecca','المدينة المنورة'=>'Medina','الدمام'=>'Dammam']],
+                    'JO' => ['ar' => 'الأردن',        'en' => 'Jordan',       'cities' => ['عمّان'=>'Amman','إربد'=>'Irbid','الزرقاء'=>'Zarqa','العقبة'=>'Aqaba']],
+                    'EG' => ['ar' => 'مصر',           'en' => 'Egypt',        'cities' => ['القاهرة'=>'Cairo','الإسكندرية'=>'Alexandria','الغردقة'=>'Hurghada','شرم الشيخ'=>'Sharm El Sheikh']],
+                    'KW' => ['ar' => 'الكويت',        'en' => 'Kuwait',       'cities' => ['مدينة الكويت'=>'Kuwait City','حولي'=>'Hawalli','الجهراء'=>'Jahra']],
+                    'QA' => ['ar' => 'قطر',           'en' => 'Qatar',        'cities' => ['الدوحة'=>'Doha','الريان'=>'Al Rayyan','الوكرة'=>'Al Wakra']],
+                    'OTHER' => ['ar' => 'أخرى',       'en' => 'Other',        'cities' => []],
+                ];
+                $selectedCountry = old('country', $project->country) ?: 'TR';
+                @endphp
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">الدولة <span class="text-danger">*</span></label>
+                        <select name="country" id="countrySelect" class="form-select">
+                            <option value="">-- اختر الدولة --</option>
+                            @foreach($countries as $code => $c)
+                            <option value="{{ $code }}" {{ $selectedCountry === $code ? 'selected' : '' }}>
+                                {{ $c['ar'] }} — {{ $c['en'] }}
+                            </option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">خط الطول (Longitude)</label>
-                        <input type="number" name="longitude" id="input-lng" class="form-control" step="any"
-                               value="{{ old('longitude', $project->longitude) }}"
-                               placeholder="مثال: 28.9784">
+                    <div class="col-md-4">
+                        <label class="form-label">المدينة <span class="text-danger">*</span></label>
+                        <select name="city" id="citySelect" class="form-select">
+                            <option value="">-- اختر المدينة --</option>
+                            @foreach($countries as $code => $c)
+                            @foreach($c['cities'] as $arCity => $enCity)
+                            <option value="{{ $arCity }}"
+                                data-country="{{ $code }}"
+                                {{ old('city', $project->city) === $arCity ? 'selected' : '' }}>
+                                {{ $arCity }} — {{ $enCity }}
+                            </option>
+                            @endforeach
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">المنطقة / الحي</label>
+                        <input type="text" name="district" class="form-control"
+                               value="{{ old('district', $project->district) }}"
+                               placeholder="مثال: بشيكتاش، المرسى، وسط المدينة">
                     </div>
                 </div>
-                <p class="text-muted small mb-2"><i class="fas fa-info-circle me-1"></i> انقر على الخريطة لتحديد موقع المشروع تلقائياً، أو أدخل الإحداثيات يدوياً.</p>
-                <div id="admin-pick-map" style="height:320px;border-radius:10px;border:1px solid #dee2e6;"></div>
+                <p class="text-muted small mt-2 mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    سيتم استخدام هذه البيانات لعرض موقع المشروع في الفلاتر وصفحة المشروع.
+                </p>
             </div>
 
             <!-- Features -->
@@ -208,6 +244,78 @@
             <div class="form-card">
                 <div class="form-card-title"><i class="fas fa-upload"></i> رفع صور إضافية</div>
                 <input type="file" name="gallery_images[]" class="form-control" multiple accept="image/*">
+                <small class="text-muted">JPEG, PNG, WebP — الحد الأقصى 10MB للصورة</small>
+            </div>
+
+            {{-- ===== PDF FILES ===== --}}
+            <div class="form-card">
+                <div class="form-card-title"><i class="fas fa-file-pdf text-danger"></i> ملفات PDF (كتيبات، مخططات)</div>
+
+                @php $existingPdfs = $project->media()->where('type','pdf')->get(); @endphp
+                @if($existingPdfs->count())
+                <div class="mb-3" id="pdf-list">
+                    @foreach($existingPdfs as $pdf)
+                    <div class="d-flex align-items-center gap-2 py-2 border-bottom" id="media-{{ $pdf->id }}">
+                        <i class="fas fa-file-pdf fa-lg text-danger"></i>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold text-truncate">{{ $pdf->original_name ?: basename($pdf->path) }}</div>
+                            <small class="text-muted">{{ $pdf->getFileSizeFormatted() }}</small>
+                        </div>
+                        <button type="button" onclick="deleteMedia({{ $pdf->id }})"
+                                class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+                <div class="pdf-upload-zone" id="pdfUploadZone">
+                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                    <p class="mb-1">اسحب ملفات PDF هنا أو <span class="text-primary" style="cursor:pointer" onclick="document.getElementById('pdfInput').click()">انقر للاختيار</span></p>
+                    <small class="text-muted">PDF فقط — الحد الأقصى 20MB</small>
+                    <input type="file" id="pdfInput" accept=".pdf" multiple class="d-none">
+                </div>
+                <div id="pdf-upload-status" class="mt-2"></div>
+            </div>
+
+            {{-- ===== VIDEO FILES ===== --}}
+            <div class="form-card">
+                <div class="form-card-title"><i class="fas fa-video text-primary"></i> ملفات الفيديو</div>
+
+                @php $existingVideos = $project->media()->where('type','video')->get(); @endphp
+                @if($existingVideos->count())
+                <div class="mb-3" id="video-list">
+                    @foreach($existingVideos as $vid)
+                    <div class="d-flex align-items-center gap-2 py-2 border-bottom" id="media-{{ $vid->id }}">
+                        <i class="fas fa-video fa-lg text-primary"></i>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-semibold text-truncate">{{ $vid->original_name ?: basename($vid->path) }}</div>
+                            <small class="text-muted">{{ $vid->getFileSizeFormatted() }}</small>
+                        </div>
+                        <button type="button" onclick="deleteMedia({{ $vid->id }})"
+                                class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+                @if($project->video_url)
+                <div class="alert alert-info py-2 mb-3">
+                    <i class="fas fa-link me-1"></i>
+                    رابط YouTube/Vimeo موجود أيضاً — يمكن استخدام كليهما
+                </div>
+                @endif
+
+                <div class="video-upload-zone" id="videoUploadZone">
+                    <i class="fas fa-film fa-2x text-muted mb-2"></i>
+                    <p class="mb-1">اسحب ملف الفيديو هنا أو <span class="text-primary" style="cursor:pointer" onclick="document.getElementById('videoInput').click()">انقر للاختيار</span></p>
+                    <small class="text-muted">MP4, MOV, AVI, WebM — الحد الأقصى 200MB</small>
+                    <input type="file" id="videoInput" accept=".mp4,.mov,.avi,.webm,video/*" class="d-none">
+                </div>
+                <div id="video-upload-status" class="mt-2"></div>
             </div>
         </div>
 
@@ -331,57 +439,136 @@ document.getElementById('addFeatureBtn').addEventListener('click', function() {
 @endpush
 
 @push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+<style>
+.pdf-upload-zone, .video-upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+.pdf-upload-zone:hover   { border-color: #dc3545; background: #fff5f5; }
+.video-upload-zone:hover { border-color: #0d6efd; background: #f0f5ff; }
+</style>
 @endpush
 
 @push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLcE=" crossorigin="anonymous"></script>
 <script>
+// Country → City select filter
 (function() {
-    var latInput = document.getElementById('input-lat');
-    var lngInput = document.getElementById('input-lng');
-    var initLat  = parseFloat(latInput.value) || 41.0082;
-    var initLng  = parseFloat(lngInput.value) || 28.9784;
-    var zoom     = (latInput.value && lngInput.value) ? 13 : 5;
+    var countrySelect = document.getElementById('countrySelect');
+    var citySelect    = document.getElementById('citySelect');
+    var allOptions    = Array.from(citySelect.querySelectorAll('option[data-country]'));
 
-    var map = L.map('admin-pick-map').setView([initLat, initLng], zoom);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
-    }).addTo(map);
-
-    var marker = null;
-    if (latInput.value && lngInput.value) {
-        marker = L.marker([initLat, initLng], { draggable: true }).addTo(map);
-        bindDrag(marker);
-    }
-
-    map.on('click', function(e) {
-        setCoords(e.latlng.lat, e.latlng.lng);
-        if (marker) { marker.setLatLng(e.latlng); }
-        else { marker = L.marker(e.latlng, { draggable: true }).addTo(map); bindDrag(marker); }
-    });
-
-    [latInput, lngInput].forEach(function(inp) {
-        inp.addEventListener('change', function() {
-            var lat = parseFloat(latInput.value), lng = parseFloat(lngInput.value);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                map.setView([lat, lng], 13);
-                if (marker) { marker.setLatLng([lat, lng]); }
-                else { marker = L.marker([lat, lng], { draggable: true }).addTo(map); bindDrag(marker); }
+    function filterCities() {
+        var country = countrySelect.value;
+        var current = citySelect.value;
+        citySelect.innerHTML = '<option value="">-- اختر المدينة --</option>';
+        allOptions.forEach(function(opt) {
+            if (!country || opt.dataset.country === country) {
+                var clone = opt.cloneNode(true);
+                if (clone.value === current) clone.selected = true;
+                citySelect.appendChild(clone);
             }
         });
+    }
+    countrySelect.addEventListener('change', filterCities);
+    filterCities();
+})();
+
+// PDF upload
+(function() {
+    var zone   = document.getElementById('pdfUploadZone');
+    var input  = document.getElementById('pdfInput');
+    var status = document.getElementById('pdf-upload-status');
+    var csrf   = document.querySelector('meta[name="csrf-token"]').content;
+
+    zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.style.borderColor='#c8a96e'; });
+    zone.addEventListener('dragleave', function()  { zone.style.borderColor=''; });
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault(); zone.style.borderColor='';
+        uploadFiles(e.dataTransfer.files, '/admin/projects/{{ $project->id }}/pdfs', status);
+    });
+    input.addEventListener('change', function() {
+        uploadFiles(this.files, '/admin/projects/{{ $project->id }}/pdfs', status);
     });
 
-    function bindDrag(m) {
-        m.on('dragend', function(e) {
-            var ll = e.target.getLatLng();
-            setCoords(ll.lat, ll.lng);
+    function uploadFiles(files, url, statusEl) {
+        Array.from(files).forEach(function(file) {
+            var fd = new FormData();
+            fd.append('pdfs[]', file);
+            fd.append('_token', csrf);
+            statusEl.innerHTML = '<div class="alert alert-info py-2"><i class="fas fa-spinner fa-spin me-2"></i>جاري الرفع: ' + file.name + '</div>';
+            fetch(url, { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        statusEl.innerHTML = '<div class="alert alert-success py-2"><i class="fas fa-check me-2"></i>تم رفع ' + file.name + ' بنجاح</div>';
+                        setTimeout(function() { location.reload(); }, 1200);
+                    } else {
+                        statusEl.innerHTML = '<div class="alert alert-danger py-2">خطأ: ' + (data.message || 'فشل الرفع') + '</div>';
+                    }
+                })
+                .catch(function() {
+                    statusEl.innerHTML = '<div class="alert alert-danger py-2">خطأ في الاتصال</div>';
+                });
         });
     }
-    function setCoords(lat, lng) {
-        latInput.value = lat.toFixed(6);
-        lngInput.value = lng.toFixed(6);
+})();
+
+// Video upload
+(function() {
+    var zone   = document.getElementById('videoUploadZone');
+    var input  = document.getElementById('videoInput');
+    var status = document.getElementById('video-upload-status');
+    var csrf   = document.querySelector('meta[name="csrf-token"]').content;
+
+    zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.style.borderColor='#0d6efd'; });
+    zone.addEventListener('dragleave', function()  { zone.style.borderColor=''; });
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault(); zone.style.borderColor='';
+        uploadVideo(e.dataTransfer.files[0], status);
+    });
+    input.addEventListener('change', function() {
+        if (this.files[0]) uploadVideo(this.files[0], status);
+    });
+
+    function uploadVideo(file, statusEl) {
+        var fd = new FormData();
+        fd.append('videos[]', file);
+        fd.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+        statusEl.innerHTML = '<div class="alert alert-info py-2"><i class="fas fa-spinner fa-spin me-2"></i>جاري رفع الفيديو... قد يستغرق بعض الوقت</div>';
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/admin/projects/{{ $project->id }}/videos');
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                var pct = Math.round(e.loaded / e.total * 100);
+                statusEl.innerHTML = '<div class="alert alert-info py-2"><div class="progress mt-1" style="height:6px"><div class="progress-bar bg-primary" style="width:' + pct + '%"></div></div><small>' + pct + '% — ' + file.name + '</small></div>';
+            }
+        };
+        xhr.onload = function() {
+            var data = JSON.parse(xhr.responseText);
+            if (data.success) {
+                statusEl.innerHTML = '<div class="alert alert-success py-2"><i class="fas fa-check me-2"></i>تم رفع الفيديو بنجاح</div>';
+                setTimeout(function() { location.reload(); }, 1200);
+            } else {
+                statusEl.innerHTML = '<div class="alert alert-danger py-2">خطأ: ' + (data.message || 'فشل الرفع') + '</div>';
+            }
+        };
+        xhr.send(fd);
     }
 })();
+
+// Delete media
+function deleteMedia(id) {
+    if (!confirm('حذف هذا الملف نهائياً؟')) return;
+    fetch('/admin/projects/{{ $project->id }}/media/' + id, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' }
+    }).then(r => r.json()).then(function(data) {
+        if (data.success) document.getElementById('media-' + id)?.remove();
+    });
+}
 </script>
 @endpush

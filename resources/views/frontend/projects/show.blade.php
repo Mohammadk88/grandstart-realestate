@@ -186,25 +186,71 @@
                 </div>
                 @endif
 
-                <!-- Video -->
-                @if($project->video_url)
+                <!-- Uploaded Videos -->
+                @php $projectVideos = $project->media()->where('type','video')->get(); @endphp
+                @if($projectVideos->count())
                 <div class="project-video mt-5" data-aos="fade-up">
                     <h3 class="detail-section-title">
-                        {{ app()->getLocale() === 'en' ? 'Project Video' : 'فيديو المشروع' }}
+                        <i class="fas fa-video me-2"></i>{{ app()->getLocale() === 'en' ? 'Project Video' : 'فيديو المشروع' }}
+                    </h3>
+                    @foreach($projectVideos as $vid)
+                    <video controls class="w-100 rounded mb-3" style="max-height:400px;background:#000;"
+                           poster="{{ $project->getMainImageThumbUrl() }}">
+                        <source src="{{ $vid->getUrl() }}" type="video/mp4">
+                        {{ app()->getLocale() === 'en' ? 'Your browser does not support video.' : 'المتصفح لا يدعم تشغيل الفيديو.' }}
+                    </video>
+                    @endforeach
+                </div>
+                @elseif($project->video_url)
+                <div class="project-video mt-5" data-aos="fade-up">
+                    <h3 class="detail-section-title">
+                        <i class="fas fa-video me-2"></i>{{ app()->getLocale() === 'en' ? 'Project Video' : 'فيديو المشروع' }}
                     </h3>
                     <div class="ratio ratio-16x9">
-                        <iframe src="{{ $project->video_url }}" allowfullscreen></iframe>
+                        <iframe src="{{ $project->video_url }}" allowfullscreen loading="lazy"></iframe>
                     </div>
                 </div>
                 @endif
 
-                <!-- Map -->
-                @if($project->latitude && $project->longitude)
-                <div class="project-map mt-5" data-aos="fade-up">
+                <!-- PDFs -->
+                @php $projectPdfs = $project->media()->where('type','pdf')->get(); @endphp
+                @if($projectPdfs->count())
+                <div class="project-pdfs mt-5" data-aos="fade-up">
                     <h3 class="detail-section-title">
-                        {{ app()->getLocale() === 'en' ? 'Location' : 'الموقع' }}
+                        <i class="fas fa-file-pdf me-2"></i>{{ app()->getLocale() === 'en' ? 'Downloads' : 'الملفات والكتيبات' }}
                     </h3>
-                    <div id="projectMap" style="height: 350px; border-radius: 12px;"></div>
+                    <div class="pdf-list">
+                        @foreach($projectPdfs as $pdf)
+                        <a href="{{ $pdf->getUrl() }}" target="_blank" class="pdf-item" download>
+                            <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+                            <div class="pdf-info">
+                                <span class="pdf-name">{{ $pdf->original_name ?: basename($pdf->path) }}</span>
+                                <span class="pdf-size">{{ $pdf->getFileSizeFormatted() }}</span>
+                            </div>
+                            <i class="fas fa-download pdf-dl-icon"></i>
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                <!-- Location (city/district) -->
+                @if($project->city || $project->district)
+                <div class="project-location-detail mt-5" data-aos="fade-up">
+                    <h3 class="detail-section-title">
+                        <i class="fas fa-map-marker-alt me-2"></i>{{ app()->getLocale() === 'en' ? 'Location' : 'الموقع' }}
+                    </h3>
+                    <div class="location-tags d-flex flex-wrap gap-2">
+                        @if($project->country)
+                        <span class="location-tag"><i class="fas fa-globe me-1"></i>{{ $project->country }}</span>
+                        @endif
+                        @if($project->city)
+                        <span class="location-tag"><i class="fas fa-city me-1"></i>{{ $project->city }}</span>
+                        @endif
+                        @if($project->district)
+                        <span class="location-tag"><i class="fas fa-map-pin me-1"></i>{{ $project->district }}</span>
+                        @endif
+                    </div>
                 </div>
                 @endif
 

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#1a1a1a"/>
+  <rect x="200" y="150" width="400" height="300" fill="#2a2a2a" rx="8"/>
+  <text x="400" y="310" text-anchor="middle" font-family="Arial,sans-serif" font-size="48" fill="#c8a96e">&#xe0b6;</text>
+  <rect x="300" y="200" width="200" height="140" fill="#333" rx="4"/>
+  <rect x="320" y="170" width="30" height="35" fill="#444" rx="2"/>
+  <rect x="360" y="170" width="30" height="35" fill="#444" rx="2"/>
+  <rect x="400" y="170" width="30" height="35" fill="#444" rx="2"/>
+  <rect x="440" y="170" width="30" height="35" fill="#444" rx="2"/>
+  <rect x="330" y="250" width="40" height="50" fill="#444" rx="2"/>
+  <rect x="430" y="250" width="40" height="50" fill="#444" rx="2"/>
+  <rect x="370" y="250" width="60" height="90" fill="#555" rx="2"/>
+  <text x="400" y="390" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" fill="#888">Grand Start Real Estate</text>
+</svg>
