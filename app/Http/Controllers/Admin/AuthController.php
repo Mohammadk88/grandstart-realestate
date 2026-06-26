@@ -45,10 +45,13 @@ class AuthController extends Controller
 
         RateLimiter::clear($key);
 
+        $admin->update(['last_login_at' => now()]);
+
         Session::regenerate();
         Session::put('admin_id', $admin->id);
         Session::put('admin_name', $admin->name);
         Session::put('admin_email', $admin->email);
+        Session::put('admin_role', $admin->role);
 
         return redirect()->route('admin.dashboard');
     }

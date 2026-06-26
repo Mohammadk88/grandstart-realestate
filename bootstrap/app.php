@@ -14,9 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
         $middleware->alias([
-            'admin.auth' => \App\Http\Middleware\AdminAuth::class,
-            'set.locale' => \App\Http\Middleware\SetLocale::class,
-            'geo.target' => \App\Http\Middleware\GeoTargeting::class,
+            'admin.auth'       => \App\Http\Middleware\AdminAuth::class,
+            'admin.permission' => \App\Http\Middleware\AdminPermission::class,
+            'set.locale'       => \App\Http\Middleware\SetLocale::class,
+            'geo.target'       => \App\Http\Middleware\GeoTargeting::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

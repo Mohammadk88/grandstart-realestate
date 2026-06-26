@@ -292,38 +292,71 @@
                 <i class="fas fa-chart-line"></i> الداشبورد
             </a>
 
-            <div class="nav-section-title mt-2">إدارة المحتوى</div>
-            <a href="{{ route('admin.projects.index') }}" class="sidebar-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
-                <i class="fas fa-building"></i> المشاريع
-                <span class="sidebar-badge">{{ \App\Models\Project::count() }}</span>
-            </a>
+            @if(isset($currentAdmin) && $currentAdmin->hasPermission('contacts.view'))
+            <div class="nav-section-title mt-2">CRM</div>
             <a href="{{ route('admin.contacts.index') }}" class="sidebar-link {{ request()->routeIs('admin.contacts.*') ? 'active' : '' }}">
-                <i class="fas fa-envelope"></i> الرسائل
+                <i class="fas fa-headset"></i> العملاء والاستفسارات
                 @php $unread = \App\Models\Contact::where('is_read', false)->count(); @endphp
                 @if($unread > 0)
                 <span class="sidebar-badge">{{ $unread }}</span>
                 @endif
             </a>
+            @if($currentAdmin->hasPermission('contacts.view'))
+            @php $dueCrm = \App\Models\Contact::dueFollowUp()->count(); @endphp
+            @if($dueCrm > 0)
+            <a href="{{ route('admin.contacts.index', ['follow_up' => 1]) }}" class="sidebar-link" style="color:#ef4444 !important; border-right-color:#ef4444;">
+                <i class="fas fa-bell"></i> متابعة متأخرة
+                <span class="sidebar-badge" style="background:#ef4444;">{{ $dueCrm }}</span>
+            </a>
+            @endif
+            @endif
+            @endif
+
+            @if(isset($currentAdmin) && $currentAdmin->hasPermission('projects.view'))
+            <div class="nav-section-title mt-2">إدارة المحتوى</div>
+            <a href="{{ route('admin.projects.index') }}" class="sidebar-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
+                <i class="fas fa-building"></i> المشاريع
+            </a>
+            @endif
+            @if(isset($currentAdmin) && $currentAdmin->hasPermission('pages.manage'))
             <a href="{{ route('admin.pages.index') }}" class="sidebar-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
                 <i class="fas fa-file-alt"></i> الصفحات
             </a>
+            @endif
+            @if(isset($currentAdmin) && $currentAdmin->hasPermission('hero.manage'))
             <a href="{{ route('admin.hero.index') }}" class="sidebar-link {{ request()->routeIs('admin.hero.*') ? 'active' : '' }}">
                 <i class="fas fa-images"></i> البانر الرئيسي
             </a>
+            @endif
+            @if(isset($currentAdmin) && $currentAdmin->hasPermission('page_builder.manage'))
             <a href="{{ route('admin.page-builder.index') }}" class="sidebar-link {{ request()->routeIs('admin.page-builder.*') ? 'active' : '' }}">
                 <i class="fas fa-th-large"></i> ترتيب الأقسام
             </a>
+            @endif
 
+            @if(isset($currentAdmin) && ($currentAdmin->hasPermission('settings.manage') || $currentAdmin->hasPermission('languages.manage') || $currentAdmin->hasPermission('countries.manage') || $currentAdmin->hasPermission('users.manage')))
             <div class="nav-section-title mt-2">الإعدادات</div>
+            @if($currentAdmin->hasPermission('users.manage'))
+            <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                <i class="fas fa-users-cog"></i> المستخدمون والصلاحيات
+            </a>
+            @endif
+            @if($currentAdmin->hasPermission('settings.manage'))
             <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                 <i class="fas fa-cog"></i> الإعدادات العامة
             </a>
+            @endif
+            @if($currentAdmin->hasPermission('languages.manage'))
             <a href="{{ route('admin.languages.index') }}" class="sidebar-link {{ request()->routeIs('admin.languages.*') ? 'active' : '' }}">
                 <i class="fas fa-language"></i> اللغات
             </a>
+            @endif
+            @if($currentAdmin->hasPermission('countries.manage'))
             <a href="{{ route('admin.countries.index') }}" class="sidebar-link {{ request()->routeIs('admin.countries.*') ? 'active' : '' }}">
                 <i class="fas fa-globe"></i> دول التواصل
             </a>
+            @endif
+            @endif
 
             <div class="nav-section-title mt-2">الموقع</div>
             <a href="{{ route('home') }}" target="_blank" class="sidebar-link">
@@ -333,11 +366,23 @@
 
         <div class="sidebar-footer">
             <div class="d-flex align-items-center gap-2 mb-2">
+                @if(isset($currentAdmin))
+                <div class="admin-avatar" style="background:{{ $currentAdmin->getRoleColor() }}; color:#000;">
+                    {{ mb_substr($currentAdmin->name, 0, 1) }}
+                </div>
+                <div>
+                    <div style="color:#ccc; font-size:0.85rem; font-weight:600;">{{ $currentAdmin->name }}</div>
+                    <div style="color:#888; font-size:0.72rem;">
+                        <span style="color:{{ $currentAdmin->getRoleColor() }};">{{ $currentAdmin->getRoleLabel() }}</span>
+                    </div>
+                </div>
+                @else
                 <div class="admin-avatar">{{ substr(session('admin_name', 'A'), 0, 1) }}</div>
                 <div>
                     <div style="color:#ccc; font-size:0.85rem; font-weight:600;">{{ session('admin_name') }}</div>
                     <div style="color:#666; font-size:0.75rem;">{{ session('admin_email') }}</div>
                 </div>
+                @endif
             </div>
             <form action="{{ route('admin.logout') }}" method="POST">
                 @csrf
