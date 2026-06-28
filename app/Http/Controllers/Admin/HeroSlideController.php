@@ -15,70 +15,53 @@ class HeroSlideController extends Controller
 {
     public function index()
     {
-        $slides   = HeroSlide::orderBy('sort_order')->get();
-        $heroType = Setting::get('hero_type', 'static');
-        return view('admin.hero.index', compact('slides', 'heroType'));
+        $slides    = HeroSlide::orderBy('sort_order')->get();
+        $heroType  = Setting::get('hero_type', 'static');
+        $languages = \App\Models\Language::allActive();
+        return view('admin.hero.index', compact('slides', 'heroType', 'languages'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'image'      => 'required|image|mimes:jpeg,jpg,png,webp|max:10240',
-            'title_ar'   => 'nullable|string|max:255',
-            'title_en'   => 'nullable|string|max:255',
-            'title_tr'   => 'nullable|string|max:255',
-            'subtitle_ar'=> 'nullable|string|max:500',
-            'subtitle_en'=> 'nullable|string|max:500',
-            'subtitle_tr'=> 'nullable|string|max:500',
-            'btn_label_ar'=> 'nullable|string|max:100',
-            'btn_label_en'=> 'nullable|string|max:100',
-            'btn_label_tr'=> 'nullable|string|max:100',
-            'btn_url'    => 'nullable|string|max:255',
-        ]);
+        $languages = \App\Models\Language::allActive();
+        $rules = ['image' => 'required|image|mimes:jpeg,jpg,png,webp|max:10240', 'btn_url' => 'nullable|string|max:255'];
+        foreach ($languages as $lang) {
+            $rules["title_{$lang->code}"]     = 'nullable|string|max:255';
+            $rules["subtitle_{$lang->code}"]  = 'nullable|string|max:500';
+            $rules["btn_label_{$lang->code}"] = 'nullable|string|max:100';
+        }
+        $request->validate($rules);
 
         $imagePath = $this->uploadSlideImage($request->file('image'));
 
-        HeroSlide::create([
-            'image'       => $imagePath,
-            'title_ar'    => $request->title_ar,
-            'title_en'    => $request->title_en,
-            'title_tr'    => $request->title_tr,
-            'subtitle_ar' => $request->subtitle_ar,
-            'subtitle_en' => $request->subtitle_en,
-            'subtitle_tr' => $request->subtitle_tr,
-            'btn_label_ar'=> $request->btn_label_ar,
-            'btn_label_en'=> $request->btn_label_en,
-            'btn_label_tr'=> $request->btn_label_tr,
-            'btn_url'     => $request->btn_url,
-            'sort_order'  => HeroSlide::count() + 1,
-        ]);
+        $data = ['image' => $imagePath, 'btn_url' => $request->btn_url, 'sort_order' => HeroSlide::count() + 1];
+        foreach ($languages as $lang) {
+            $data["title_{$lang->code}"]     = $request->input("title_{$lang->code}");
+            $data["subtitle_{$lang->code}"]  = $request->input("subtitle_{$lang->code}");
+            $data["btn_label_{$lang->code}"] = $request->input("btn_label_{$lang->code}");
+        }
 
+        HeroSlide::create($data);
         return back()->with('success', 'تم إضافة الشريحة بنجاح');
     }
 
     public function update(Request $request, HeroSlide $heroSlide)
     {
-        $request->validate([
-            'image'      => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
-            'title_ar'   => 'nullable|string|max:255',
-            'title_en'   => 'nullable|string|max:255',
-            'title_tr'   => 'nullable|string|max:255',
-            'subtitle_ar'=> 'nullable|string|max:500',
-            'subtitle_en'=> 'nullable|string|max:500',
-            'subtitle_tr'=> 'nullable|string|max:500',
-            'btn_label_ar'=> 'nullable|string|max:100',
-            'btn_label_en'=> 'nullable|string|max:100',
-            'btn_label_tr'=> 'nullable|string|max:100',
-            'btn_url'    => 'nullable|string|max:255',
-            'active'     => 'boolean',
-        ]);
+        $languages = \App\Models\Language::allActive();
+        $rules = ['image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240', 'btn_url' => 'nullable|string|max:255', 'active' => 'boolean'];
+        foreach ($languages as $lang) {
+            $rules["title_{$lang->code}"]     = 'nullable|string|max:255';
+            $rules["subtitle_{$lang->code}"]  = 'nullable|string|max:500';
+            $rules["btn_label_{$lang->code}"] = 'nullable|string|max:100';
+        }
+        $request->validate($rules);
 
-        $data = $request->only([
-            'title_ar','title_en','title_tr',
-            'subtitle_ar','subtitle_en','subtitle_tr',
-            'btn_label_ar','btn_label_en','btn_label_tr',
-            'btn_url',
-        ]);
+        $data = ['btn_url' => $request->btn_url];
+        foreach ($languages as $lang) {
+            $data["title_{$lang->code}"]     = $request->input("title_{$lang->code}");
+            $data["subtitle_{$lang->code}"]  = $request->input("subtitle_{$lang->code}");
+            $data["btn_label_{$lang->code}"] = $request->input("btn_label_{$lang->code}");
+        }
         $data['active'] = $request->boolean('active');
 
         if ($request->hasFile('image')) {
