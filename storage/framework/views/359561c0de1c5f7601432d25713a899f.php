@@ -59,22 +59,27 @@
 
     <!-- Bootstrap 5 RTL/LTR -->
     <?php if(app()->getLocale() === 'ar'): ?>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css"
+          integrity="sha384-PJsj/BTMqILvmcej7ulplguok8ag4xFTPryRq8xevL7eBYSmpXKcbNVuy+P0RMgq" crossorigin="anonymous">
     <?php else: ?>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <?php endif; ?>
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
 
     <!-- Swiper -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"
+          integrity="sha384-WDy11dc+3v52BOTt9WHuWenX6bjqGVBwYrU4XtgPIrneMtg1bXhpmWEZECSNrasO" crossorigin="anonymous">
 
     <!-- Leaflet (lazy-loaded only on pages that use map) -->
     <?php echo $__env->yieldPushContent('map_css'); ?>
 
     <!-- AOS -->
-    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"
+          integrity="sha384-/rJKQnzOkEo+daG0jMjU1IwwY9unxt1NBw3Ef2fmOJ3PW/TfAg2KXVoWwMZQZtw9" crossorigin="anonymous">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo e(asset('css/app.css')); ?>">
@@ -87,7 +92,8 @@
     <div class="top-bar">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center py-2">
-                <div class="top-contact d-none d-md-flex gap-3">
+                
+                <div class="top-contact d-none d-md-flex gap-3 align-items-center">
                     <?php
                         $topContact = \App\Services\CountryContactService::getContact(
                             request()->get('visitor_country', 'AE')
@@ -108,14 +114,49 @@
                     </a>
                     <?php endif; ?>
                 </div>
-                <div class="lang-switcher d-flex gap-2 align-items-center">
-                    <?php $__currentLoopData = \App\Models\Language::allActive(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lang): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <a href="<?php echo e(route('lang.switch', $lang->code)); ?>"
-                       class="lang-btn <?php echo e(app()->getLocale() === $lang->code ? 'active' : ''); ?>">
-                        <?php echo e($lang->name_native); ?>
 
-                    </a>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                
+                <div class="d-flex align-items-center gap-3">
+                    
+                    <?php
+                        $socials = [
+                            'facebook_url'  => ['icon' => 'fab fa-facebook-f',  'label' => 'Facebook'],
+                            'instagram_url' => ['icon' => 'fab fa-instagram',    'label' => 'Instagram'],
+                            'twitter_url'   => ['icon' => 'fab fa-x-twitter',    'label' => 'X'],
+                            'youtube_url'   => ['icon' => 'fab fa-youtube',      'label' => 'YouTube'],
+                            'tiktok_url'    => ['icon' => 'fab fa-tiktok',       'label' => 'TikTok'],
+                            'linkedin_url'  => ['icon' => 'fab fa-linkedin-in',  'label' => 'LinkedIn'],
+                            'whatsapp_url'  => ['icon' => 'fab fa-whatsapp',     'label' => 'WhatsApp'],
+                        ];
+                        $hasSocial = false;
+                        foreach ($socials as $key => $_) {
+                            if (\App\Models\Setting::get($key)) { $hasSocial = true; break; }
+                        }
+                    ?>
+                    <?php if($hasSocial): ?>
+                    <div class="top-social d-none d-md-flex align-items-center gap-1">
+                        <?php $__currentLoopData = $socials; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php $url = \App\Models\Setting::get($key); ?>
+                        <?php if($url): ?>
+                        <a href="<?php echo e($url); ?>" target="_blank" rel="noopener" class="top-social-link" title="<?php echo e($s['label']); ?>">
+                            <i class="<?php echo e($s['icon']); ?>"></i>
+                        </a>
+                        <?php endif; ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
+                    <div class="top-bar-divider d-none d-md-block"></div>
+                    <?php endif; ?>
+
+                    
+                    <div class="lang-switcher d-flex gap-2 align-items-center">
+                        <?php $__currentLoopData = \App\Models\Language::allActive(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lang): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <a href="<?php echo e(route('lang.switch', $lang->code)); ?>"
+                           class="lang-btn <?php echo e(app()->getLocale() === $lang->code ? 'active' : ''); ?>">
+                            <?php echo e($lang->name_native); ?>
+
+                        </a>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,9 +165,21 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg main-navbar sticky-top" id="mainNav">
         <div class="container">
-            <!-- Logo -->
-            <a class="navbar-brand" href="<?php echo e(route('home')); ?>">
-                <img src="<?php echo e(asset('images/logo-transparent.png')); ?>" alt="Grand Start Real Estate" class="navbar-logo">
+            <!-- Logo + Company Name -->
+            <a class="navbar-brand d-flex align-items-center gap-2" href="<?php echo e(route('home')); ?>">
+                <img src="<?php echo e(asset('images/logo-transparent.png')); ?>"
+                     alt="<?php echo e(\App\Models\Setting::get('company_name_' . app()->getLocale(), 'Grand Star')); ?>"
+                     class="navbar-logo">
+                <div class="navbar-brand-text">
+                    <span class="navbar-brand-name">
+                        <?php echo e(\App\Models\Setting::get('company_name_' . app()->getLocale(), 'Grand Star')); ?>
+
+                    </span>
+                    <?php $tagline = \App\Models\Setting::get('company_tagline_' . app()->getLocale()); ?>
+                    <?php if($tagline): ?>
+                    <span class="navbar-brand-tagline d-none d-lg-block"><?php echo e($tagline); ?></span>
+                    <?php endif; ?>
+                </div>
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -290,13 +343,16 @@
     <?php endif; ?>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 
     <!-- Swiper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"
+            integrity="sha384-UpSTlZpLDzenAXs6CRRa5gU7uk1xaEJy+7uIz+c0niFDR3yuAlqzV7w0SgZhmEX3" crossorigin="anonymous"></script>
 
     <!-- AOS -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"
+            integrity="sha384-wziAfh6b/qT+3LrqebF9WeK4+J5sehS6FA10J1t3a866kJ/fvU5UwofWnQyzLtwu" crossorigin="anonymous"></script>
 
     <!-- Custom JS -->
     <script src="<?php echo e(asset('js/app.js')); ?>"></script>
