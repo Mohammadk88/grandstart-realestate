@@ -92,7 +92,8 @@
     <div class="top-bar">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center py-2">
-                <div class="top-contact d-none d-md-flex gap-3">
+                {{-- Left: phone + email --}}
+                <div class="top-contact d-none d-md-flex gap-3 align-items-center">
                     @php
                         $topContact = \App\Services\CountryContactService::getContact(
                             request()->get('visitor_country', 'AE')
@@ -111,13 +112,48 @@
                     </a>
                     @endif
                 </div>
-                <div class="lang-switcher d-flex gap-2 align-items-center">
-                    @foreach(\App\Models\Language::allActive() as $lang)
-                    <a href="{{ route('lang.switch', $lang->code) }}"
-                       class="lang-btn {{ app()->getLocale() === $lang->code ? 'active' : '' }}">
-                        {{ $lang->name_native }}
-                    </a>
-                    @endforeach
+
+                {{-- Right: social icons + lang switcher --}}
+                <div class="d-flex align-items-center gap-3">
+                    {{-- Social Media Icons --}}
+                    @php
+                        $socials = [
+                            'facebook_url'  => ['icon' => 'fab fa-facebook-f',  'label' => 'Facebook'],
+                            'instagram_url' => ['icon' => 'fab fa-instagram',    'label' => 'Instagram'],
+                            'twitter_url'   => ['icon' => 'fab fa-x-twitter',    'label' => 'X'],
+                            'youtube_url'   => ['icon' => 'fab fa-youtube',      'label' => 'YouTube'],
+                            'tiktok_url'    => ['icon' => 'fab fa-tiktok',       'label' => 'TikTok'],
+                            'linkedin_url'  => ['icon' => 'fab fa-linkedin-in',  'label' => 'LinkedIn'],
+                            'whatsapp_url'  => ['icon' => 'fab fa-whatsapp',     'label' => 'WhatsApp'],
+                        ];
+                        $hasSocial = false;
+                        foreach ($socials as $key => $_) {
+                            if (\App\Models\Setting::get($key)) { $hasSocial = true; break; }
+                        }
+                    @endphp
+                    @if($hasSocial)
+                    <div class="top-social d-none d-md-flex align-items-center gap-1">
+                        @foreach($socials as $key => $s)
+                        @php $url = \App\Models\Setting::get($key); @endphp
+                        @if($url)
+                        <a href="{{ $url }}" target="_blank" rel="noopener" class="top-social-link" title="{{ $s['label'] }}">
+                            <i class="{{ $s['icon'] }}"></i>
+                        </a>
+                        @endif
+                        @endforeach
+                    </div>
+                    <div class="top-bar-divider d-none d-md-block"></div>
+                    @endif
+
+                    {{-- Language switcher --}}
+                    <div class="lang-switcher d-flex gap-2 align-items-center">
+                        @foreach(\App\Models\Language::allActive() as $lang)
+                        <a href="{{ route('lang.switch', $lang->code) }}"
+                           class="lang-btn {{ app()->getLocale() === $lang->code ? 'active' : '' }}">
+                            {{ $lang->name_native }}
+                        </a>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,9 +162,20 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg main-navbar sticky-top" id="mainNav">
         <div class="container">
-            <!-- Logo -->
-            <a class="navbar-brand" href="{{ route('home') }}">
-                <img src="{{ asset('images/logo-transparent.png') }}" alt="Grand Start Real Estate" class="navbar-logo">
+            <!-- Logo + Company Name -->
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
+                <img src="{{ asset('images/logo-transparent.png') }}"
+                     alt="{{ \App\Models\Setting::get('company_name_' . app()->getLocale(), 'Grand Star') }}"
+                     class="navbar-logo">
+                <div class="navbar-brand-text">
+                    <span class="navbar-brand-name">
+                        {{ \App\Models\Setting::get('company_name_' . app()->getLocale(), 'Grand Star') }}
+                    </span>
+                    @php $tagline = \App\Models\Setting::get('company_tagline_' . app()->getLocale()); @endphp
+                    @if($tagline)
+                    <span class="navbar-brand-tagline d-none d-lg-block">{{ $tagline }}</span>
+                    @endif
+                </div>
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

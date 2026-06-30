@@ -87,10 +87,64 @@ img { max-width: 100%; }
 }
 
 .navbar-logo {
-    height: 50px;
+    height: 64px;
+    width: auto;
     transition: height 0.3s;
+    flex-shrink: 0;
 }
-.main-navbar.scrolled .navbar-logo { height: 40px; }
+.main-navbar.scrolled .navbar-logo { height: 46px; }
+
+/* Navbar brand text (company name + tagline) */
+.navbar-brand-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
+}
+.navbar-brand-name {
+    font-family: 'Cairo', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    transition: font-size 0.3s;
+}
+.main-navbar.scrolled .navbar-brand-name { font-size: 0.95rem; }
+.navbar-brand-tagline {
+    font-size: 0.65rem;
+    color: var(--gold);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 400;
+    white-space: nowrap;
+}
+.navbar-brand:hover .navbar-brand-name { color: var(--gold); }
+
+/* Top bar social icons */
+.top-social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    color: #888;
+    font-size: 0.75rem;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.2s;
+}
+.top-social-link:hover {
+    color: var(--gold);
+    border-color: rgba(201,168,76,0.5);
+    background: rgba(201,168,76,0.08);
+}
+.top-bar-divider {
+    width: 1px;
+    height: 16px;
+    background: rgba(255,255,255,0.12);
+}
 
 .nav-link {
     color: #ccc !important;
@@ -1079,7 +1133,9 @@ img { max-width: 100%; }
     .hero-subtitle { font-size: 0.95rem; }
     .hero-actions .btn { width: 100%; margin-bottom: 0.5rem; }
     .hero-actions .me-3 { margin-right: 0 !important; }
-    .navbar-logo { height: 40px; }
+    .navbar-logo { height: 44px; }
+    .navbar-brand-name { font-size: 0.95rem; }
+    .navbar-brand-tagline { display: none; }
     .whatsapp-float { width: 50px; height: 50px; bottom: 1.25rem; left: 1.25rem; }
     [dir="rtl"] .whatsapp-float { left: auto; right: 1.25rem; }
     .whatsapp-float i { font-size: 1.4rem; }
