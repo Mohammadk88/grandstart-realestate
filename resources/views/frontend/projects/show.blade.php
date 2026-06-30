@@ -63,40 +63,57 @@
             <div class="col-lg-8">
 
                 <!-- Main Image / Gallery -->
+                @php
+                    $allGalleryImages = collect();
+                    // Always add main image first
+                    $allGalleryImages->push(['url' => $project->getMainImageUrl(), 'thumb' => $project->getMainImageThumbUrl()]);
+                    foreach($project->images as $img) {
+                        $allGalleryImages->push(['url' => $img->getUrl(), 'thumb' => $img->getThumbUrl()]);
+                    }
+                    foreach($project->mediaImages as $img) {
+                        $allGalleryImages->push(['url' => $img->getUrl(), 'thumb' => $img->getThumbUrl()]);
+                    }
+                    $hasGallery = $allGalleryImages->count() > 1;
+                @endphp
+
                 <div class="project-gallery" data-aos="fade-up">
-                    @if($project->images->count() > 0)
+                    @if($hasGallery)
                     <div class="swiper gallery-swiper mb-3">
                         <div class="swiper-wrapper">
+                            @foreach($allGalleryImages as $i => $img)
                             <div class="swiper-slide">
-                                <img src="{{ $project->getMainImageUrl() }}" alt="{{ $project->getTitle() }}" class="gallery-main-img">
-                            </div>
-                            @foreach($project->images as $image)
-                            <div class="swiper-slide">
-                                <img src="{{ $image->getUrl() }}" alt="{{ $project->getTitle() }}" class="gallery-main-img">
+                                <a href="{{ $img['url'] }}" class="glightbox" data-gallery="project-gallery"
+                                   data-glightbox="slide-effect: zoom">
+                                    <img src="{{ $img['url'] }}" alt="{{ $project->getTitle() }}" class="gallery-main-img">
+                                    <div class="gallery-zoom-btn"><i class="fas fa-expand-alt"></i></div>
+                                </a>
                             </div>
                             @endforeach
                         </div>
                         <div class="swiper-button-prev"></div>
                         <div class="swiper-button-next"></div>
                         <div class="swiper-pagination"></div>
+                        <div class="gallery-count-badge">
+                            <i class="fas fa-images me-1"></i>{{ $allGalleryImages->count() }}
+                        </div>
                     </div>
 
                     <!-- Thumbnails -->
                     <div class="swiper gallery-thumbs">
                         <div class="swiper-wrapper">
+                            @foreach($allGalleryImages as $img)
                             <div class="swiper-slide">
-                                <img src="{{ $project->getMainImageThumbUrl() }}" alt="" class="gallery-thumb-img">
-                            </div>
-                            @foreach($project->images as $image)
-                            <div class="swiper-slide">
-                                <img src="{{ $image->getThumbUrl() }}" alt="" class="gallery-thumb-img">
+                                <img src="{{ $img['thumb'] }}" alt="" class="gallery-thumb-img">
                             </div>
                             @endforeach
                         </div>
                     </div>
                     @else
                     <div class="single-project-image mb-4">
-                        <img src="{{ $project->getMainImageUrl() }}" alt="{{ $project->getTitle() }}" class="img-fluid rounded">
+                        <a href="{{ $project->getMainImageUrl() }}" class="glightbox">
+                            <img src="{{ $project->getMainImageUrl() }}" alt="{{ $project->getTitle() }}" class="img-fluid rounded">
+                            <div class="gallery-zoom-btn"><i class="fas fa-expand-alt"></i></div>
+                        </a>
                     </div>
                     @endif
                 </div>
@@ -186,29 +203,41 @@
                 </div>
                 @endif
 
-                <!-- Uploaded Videos -->
+                <!-- Videos -->
                 @php $projectVideos = $project->media()->where('type','video')->get(); @endphp
-                @if($projectVideos->count())
+                @if($projectVideos->count() || $project->video_url)
                 <div class="project-video mt-5" data-aos="fade-up">
                     <h3 class="detail-section-title">
-                        <i class="fas fa-video me-2"></i>{{ app()->getLocale() === 'en' ? 'Project Video' : 'فيديو المشروع' }}
+                        <i class="fas fa-video me-2"></i>{{ __('app.project_video') }}
                     </h3>
-                    @foreach($projectVideos as $vid)
-                    <video controls class="w-100 rounded mb-3" style="max-height:400px;background:#000;"
-                           poster="{{ $project->getMainImageThumbUrl() }}">
-                        <source src="{{ $vid->getUrl() }}" type="video/mp4">
-                        {{ app()->getLocale() === 'en' ? 'Your browser does not support video.' : 'المتصفح لا يدعم تشغيل الفيديو.' }}
-                    </video>
-                    @endforeach
-                </div>
-                @elseif($project->video_url)
-                <div class="project-video mt-5" data-aos="fade-up">
-                    <h3 class="detail-section-title">
-                        <i class="fas fa-video me-2"></i>{{ app()->getLocale() === 'en' ? 'Project Video' : 'فيديو المشروع' }}
-                    </h3>
-                    <div class="ratio ratio-16x9">
+                    @if($projectVideos->count() === 1)
+                    {{-- Single video: inline player --}}
+                    <div class="video-player-wrap">
+                        <video controls class="w-100" poster="{{ $project->getMainImageThumbUrl() }}">
+                            <source src="{{ $projectVideos->first()->getUrl() }}" type="video/mp4">
+                        </video>
+                    </div>
+                    @elseif($projectVideos->count() > 1)
+                    {{-- Multiple videos: tabs --}}
+                    <div class="video-tabs">
+                        @foreach($projectVideos as $i => $vid)
+                        <button class="video-tab-btn {{ $i===0?'active':'' }}"
+                                onclick="switchVideo(this, '{{ $vid->getUrl() }}', '{{ $vid->original_name ?: 'فيديو '.($i+1) }}')">
+                            <i class="fas fa-play-circle me-1"></i>
+                            {{ $vid->original_name ? \Illuminate\Support\Str::limit($vid->original_name, 25) : 'فيديو '.($i+1) }}
+                        </button>
+                        @endforeach
+                    </div>
+                    <div class="video-player-wrap mt-3">
+                        <video id="mainVideoPlayer" controls class="w-100" poster="{{ $project->getMainImageThumbUrl() }}">
+                            <source src="{{ $projectVideos->first()->getUrl() }}" type="video/mp4">
+                        </video>
+                    </div>
+                    @elseif($project->video_url)
+                    <div class="ratio ratio-16x9 rounded overflow-hidden">
                         <iframe src="{{ $project->video_url }}" allowfullscreen loading="lazy"></iframe>
                     </div>
+                    @endif
                 </div>
                 @endif
 
@@ -217,17 +246,24 @@
                 @if($projectPdfs->count())
                 <div class="project-pdfs mt-5" data-aos="fade-up">
                     <h3 class="detail-section-title">
-                        <i class="fas fa-file-pdf me-2"></i>{{ app()->getLocale() === 'en' ? 'Downloads' : 'الملفات والكتيبات' }}
+                        <i class="fas fa-file-pdf me-2"></i>{{ __('app.downloads') }}
                     </h3>
-                    <div class="pdf-list">
+                    <div class="pdf-cards-grid">
                         @foreach($projectPdfs as $pdf)
-                        <a href="{{ $pdf->getUrl() }}" target="_blank" class="pdf-item" download>
-                            <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
-                            <div class="pdf-info">
-                                <span class="pdf-name">{{ $pdf->original_name ?: basename($pdf->path) }}</span>
-                                <span class="pdf-size">{{ $pdf->getFileSizeFormatted() }}</span>
+                        <a href="{{ $pdf->getUrl() }}" target="_blank" class="pdf-card" download>
+                            <div class="pdf-card-icon">
+                                <i class="fas fa-file-pdf"></i>
                             </div>
-                            <i class="fas fa-download pdf-dl-icon"></i>
+                            <div class="pdf-card-body">
+                                <div class="pdf-card-name">{{ $pdf->original_name ?: basename($pdf->path) }}</div>
+                                <div class="pdf-card-meta">
+                                    <span class="pdf-card-size">{{ $pdf->getFileSizeFormatted() }}</span>
+                                </div>
+                            </div>
+                            <div class="pdf-card-action">
+                                <i class="fas fa-download"></i>
+                                <span>{{ app()->getLocale() === 'ar' ? 'تحميل' : (app()->getLocale() === 'tr' ? 'İndir' : 'Download') }}</span>
+                            </div>
                         </a>
                         @endforeach
                     </div>
@@ -392,34 +428,38 @@
 
 @endsection
 
+@push('head_scripts')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox@3.3.0/dist/css/glightbox.min.css"
+      integrity="sha384-GPAzSuZc0kFvdIev6wm9zg8gnafE8tLso7rsAYQfc9hAdWCpOcpcNI5W9lWkYcsd"
+      crossorigin="anonymous">
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/glightbox@3.3.0/dist/js/glightbox.min.js"
+        integrity="sha384-/+Fc1LD6ksHYZ+2MChiSfjEXBcl4q2axUWhs6/CdnfqY5aLmrPwtysVzyeP0s60b"
+        crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gallery Swiper
+    // ── GLightbox ─────────────────────────────────────────
+    GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });
+
+    // ── Gallery Swiper ─────────────────────────────────────
+    @if($hasGallery)
     const galleryThumbs = new Swiper('.gallery-thumbs', {
-        spaceBetween: 10,
-        slidesPerView: 4,
+        spaceBetween: 8,
+        slidesPerView: 'auto',
         freeMode: true,
         watchSlidesProgress: true,
     });
-
     new Swiper('.gallery-swiper', {
         spaceBetween: 10,
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-        pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-        },
-        thumbs: {
-            swiper: galleryThumbs,
-        },
+        navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+        pagination: { el: '.swiper-pagination', clickable: true },
+        thumbs: { swiper: galleryThumbs },
     });
+    @endif
 
     @if($project->latitude && $project->longitude)
-    // Map placeholder (integrates with Leaflet if loaded)
     const mapEl = document.getElementById('projectMap');
     if (mapEl && typeof L !== 'undefined') {
         const map = L.map('projectMap').setView([{{ $project->latitude }}, {{ $project->longitude }}], 15);
@@ -429,5 +469,141 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     @endif
 });
+
+// ── Multi-video tab switch ────────────────────────────────
+function switchVideo(btn, url, name) {
+    document.querySelectorAll('.video-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const player = document.getElementById('mainVideoPlayer');
+    if (player) {
+        player.pause();
+        player.querySelector('source').src = url;
+        player.load();
+    }
+}
 </script>
+
+@push('styles')
+<style>
+/* ── Gallery zoom button ── */
+.gallery-main-img { display:block; }
+.swiper-slide > a { position:relative; display:block; }
+.gallery-zoom-btn {
+    position: absolute;
+    bottom: 12px; right: 12px;
+    background: rgba(0,0,0,.5);
+    color: #fff;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items:center; justify-content:center;
+    font-size: .85rem;
+    opacity: 0;
+    transition: opacity .2s;
+    backdrop-filter: blur(4px);
+}
+.swiper-slide:hover .gallery-zoom-btn,
+.single-project-image:hover .gallery-zoom-btn { opacity: 1; }
+.single-project-image { position: relative; }
+.single-project-image > a { display:block; position:relative; }
+
+/* ── Gallery count badge ── */
+.gallery-count-badge {
+    position: absolute;
+    bottom: 12px; left: 12px;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: .78rem;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+}
+.gallery-swiper { position: relative; }
+
+/* ── Video player ── */
+.video-player-wrap {
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,.15);
+}
+.video-player-wrap video { display:block; max-height: 420px; }
+.video-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+.video-tab-btn {
+    padding: 6px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    background: #f9fafb;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: all .2s;
+    color: #555;
+}
+.video-tab-btn.active,
+.video-tab-btn:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #fff;
+}
+
+/* ── PDF cards grid ── */
+.pdf-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+}
+.pdf-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem 1rem;
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 14px;
+    text-decoration: none;
+    color: #333;
+    transition: all .25s;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.pdf-card:hover {
+    border-color: #dc3545;
+    box-shadow: 0 6px 20px rgba(220,53,69,.12);
+    transform: translateY(-3px);
+    color: #dc3545;
+}
+.pdf-card-icon {
+    font-size: 3rem;
+    color: #dc3545;
+    margin-bottom: .75rem;
+    line-height: 1;
+}
+.pdf-card-body { flex: 1; }
+.pdf-card-name {
+    font-weight: 700;
+    font-size: .85rem;
+    line-height: 1.3;
+    margin-bottom: .25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.pdf-card-meta { font-size: .72rem; color: #aaa; margin-bottom: .75rem; }
+.pdf-card-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #dc3545;
+    color: #fff;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: .8rem;
+    font-weight: 600;
+    margin-top: .5rem;
+    transition: background .2s;
+}
+.pdf-card:hover .pdf-card-action { background: #b91c1c; }
+</style>
+@endpush
 @endpush

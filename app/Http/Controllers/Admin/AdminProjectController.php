@@ -128,10 +128,10 @@ class AdminProjectController extends Controller
             'images.*' => 'required|image|mimes:jpeg,jpg,png,webp,gif|max:10240',
         ]);
 
-        $uploaded = 0;
+        $items = [];
         foreach ($request->file('images', []) as $file) {
             [$path, $thumb] = $this->uploadImage($file, 'projects/gallery');
-            ProjectMedia::create([
+            $media = ProjectMedia::create([
                 'project_id'    => $project->id,
                 'type'          => 'image',
                 'path'          => $path,
@@ -140,10 +140,16 @@ class AdminProjectController extends Controller
                 'file_size'     => $file->getSize(),
                 'sort_order'    => $project->media()->count() + 1,
             ]);
-            $uploaded++;
+            $items[] = [
+                'id'    => $media->id,
+                'url'   => $media->getUrl(),
+                'thumb' => $media->getThumbUrl(),
+                'name'  => $file->getClientOriginalName(),
+                'size'  => $media->getFileSizeFormatted(),
+            ];
         }
 
-        return response()->json(['success' => true, 'uploaded' => $uploaded]);
+        return response()->json(['success' => true, 'items' => $items]);
     }
 
     public function uploadPdfs(Request $request, Project $project)
@@ -152,14 +158,14 @@ class AdminProjectController extends Controller
             'pdfs.*' => 'required|mimes:pdf|max:20480',
         ]);
 
-        $uploaded = 0;
+        $items = [];
         foreach ($request->file('pdfs', []) as $file) {
             $basename = Str::random(20);
             $filename = $basename . '.pdf';
             $folder   = 'projects/pdfs';
             $file->storeAs("public/{$folder}", $filename);
 
-            ProjectMedia::create([
+            $media = ProjectMedia::create([
                 'project_id'    => $project->id,
                 'type'          => 'pdf',
                 'path'          => "{$folder}/{$filename}",
@@ -167,10 +173,15 @@ class AdminProjectController extends Controller
                 'file_size'     => $file->getSize(),
                 'sort_order'    => $project->media()->count() + 1,
             ]);
-            $uploaded++;
+            $items[] = [
+                'id'   => $media->id,
+                'name' => $file->getClientOriginalName(),
+                'size' => $media->getFileSizeFormatted(),
+                'url'  => $media->getUrl(),
+            ];
         }
 
-        return response()->json(['success' => true, 'uploaded' => $uploaded]);
+        return response()->json(['success' => true, 'items' => $items]);
     }
 
     public function uploadVideos(Request $request, Project $project)
@@ -179,7 +190,7 @@ class AdminProjectController extends Controller
             'videos.*' => 'required|mimes:mp4,mov,avi,webm|max:204800',
         ]);
 
-        $uploaded = 0;
+        $items = [];
         foreach ($request->file('videos', []) as $file) {
             $basename = Str::random(20);
             $ext      = $file->getClientOriginalExtension();
@@ -187,7 +198,7 @@ class AdminProjectController extends Controller
             $folder   = 'projects/videos';
             $file->storeAs("public/{$folder}", $filename);
 
-            ProjectMedia::create([
+            $media = ProjectMedia::create([
                 'project_id'    => $project->id,
                 'type'          => 'video',
                 'path'          => "{$folder}/{$filename}",
@@ -195,10 +206,15 @@ class AdminProjectController extends Controller
                 'file_size'     => $file->getSize(),
                 'sort_order'    => $project->media()->count() + 1,
             ]);
-            $uploaded++;
+            $items[] = [
+                'id'   => $media->id,
+                'name' => $file->getClientOriginalName(),
+                'size' => $media->getFileSizeFormatted(),
+                'url'  => $media->getUrl(),
+            ];
         }
 
-        return response()->json(['success' => true, 'uploaded' => $uploaded]);
+        return response()->json(['success' => true, 'items' => $items]);
     }
 
     public function deleteMedia(Project $project, ProjectMedia $media)
