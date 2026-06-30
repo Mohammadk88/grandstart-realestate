@@ -5,7 +5,19 @@
 /public/storage
 /public/uploads
 /storage/*.key
-/storage
+
+# Storage — ignore all uploaded/generated files
+/storage/app/public/projects/
+/storage/app/public/hero/
+/storage/app/.DS_Store
+/storage/app/public/.DS_Store
+/storage/framework/cache/data/
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/views/
+/storage/logs/*
+!/storage/logs/.gitkeep
+*.DS_Store
 /vendor
 .env
 .env.backup
